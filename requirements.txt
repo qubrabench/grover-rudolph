@@ -1,0 +1,8 @@
+qubrabench@git+https://github.com/qubrabench/qubrabench.git#egg=cbe51984534654a4092fb0f839158c4d4447a610
+numpy~=1.24
+matplotlib~=3.7
+black[jupyter]
+pytest~=7.3
+ruff~=0.0
+mypy~=1.2
+pandas-stubs~=2.0

@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+markers = []
+
+[tool.ruff]
+line-length = 100000 # 88 enforced by black, ignore for comments.
+
+[tool.mypy]
+plugins = ["numpy.typing.mypy_plugin"]
