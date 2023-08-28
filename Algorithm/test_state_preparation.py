@@ -187,7 +187,7 @@ def test_circuit():
     N = 2**n_qubit
 
     for d in range(1, 2**n_qubit):
-        vector, nonzero_loc = sparse_couple_vect(n_qubit, d)
+        vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
 
         # build the respective density matrix
         vect = np.zeros(N, dtype=np.complex128)

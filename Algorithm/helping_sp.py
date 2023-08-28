@@ -2,6 +2,7 @@ import numpy as np
 from numpy import linalg
 from itertools import combinations
 import random
+import scipy as sp
 
 # global zero precision
 ZERO = 1e-8
@@ -130,7 +131,7 @@ def reduced_density_matrix(rho, traced_dim):
     return reduced_rho
 
 
-def sparse_couple_vect(N, d):
+def generate_sparse_vect(n_qubit, d):
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
     as couples: position and value of the i-th non zero element
@@ -143,32 +144,21 @@ def sparse_couple_vect(N, d):
             vector = complex array of lenght d, with the values of the amplitudes
             nonzero_locations = int array of lenght d (ordered) with the position of the non-zero element
     """
-    vector = np.empty(d, dtype=np.complex128)
-    nonzero_locations = np.empty(d, dtype=int)
-    i = 0
+    N = 2**n_qubit
 
-    if d > 2**N:
+    if d > N:
         raise (
             ValueError(
                 "Sparsity must be less or equal than the dimension of the vector\n"
             )
         )
 
-    while i in range(d):
-        position = random.randint(0, 2**N - 1)
-
-        if position in nonzero_locations:
-            continue
-
-        nonzero_locations[i] = position
-        vector[i] = np.random.uniform(-1, 1) + 1.0j * np.random.uniform(-1, 1)
-
-        i += 1
-
-    # increasing order of the locations, and binary representation
-    nonzero_locations = np.sort(nonzero_locations)
-
-    return vector / linalg.norm(vector), nonzero_locations
+    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype="complex")
+    sparse_v.sort_indices()
+    nonzero_loc = sparse_v.nonzero()[1]
+    values = sparse_v.data
+    values = values / np.linalg.norm(values)
+    return values, nonzero_loc
 
 
 def hamming_weight(n: int):
@@ -177,3 +167,19 @@ def hamming_weight(n: int):
         h_weight += 1
         n &= n - 1
     return h_weight
+
+
+def pad_to_pow2(vector, nonzero_locations, N_qubit):
+    sparsity = len(nonzero_locations)
+
+    if sparsity & (sparsity - 1) != 0:
+        extra_zeros = 2 ** (int(np.log2(sparsity)) + 1) - sparsity
+        counter_pad = 0
+        for i in range(2**N_qubit):
+            if i not in nonzero_locations:
+                vector = np.insert(vector, i, 0)
+                nonzero_locations = np.insert(nonzero_locations, i, i)
+                counter_pad += 1
+            if counter_pad == extra_zeros:
+                break
+    return vector, nonzero_locations

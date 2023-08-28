@@ -118,27 +118,25 @@ def gate_count(dict_list):
                 N_cnot += 2
                 N_1_gate += 4 + (2 * count0)
 
-    count = [N_toffoli, N_cnot, N_1_gate]
+    count = np.array([N_toffoli, N_cnot, N_1_gate])
 
     return count
 
 
-def build_permutation(nonzero_locations, N_ancilla):
+def build_permutation(nonzero_locations):
     """
     Given a classical permutation, return its cyclic decomposition
     Construct a permutation unitary that maps |i⟩ → |x_i⟩
 
     Args:
-                    nonzero_locations (list): the locations of nonzero elements of a sparse vector state |b⟩
+        nonzero_locations (list): the locations of nonzero elements of a sparse vector state |b⟩
 
     Returns:
-                    cycles (list): permutation cycles
+        cycles (list): permutation cycles
 
     """
     d = len(nonzero_locations)  # Sparsity
-
     S = [1 for i in range(d)]
-
     cycles = []  # list to store the permutation cycles
 
     # Build the cycles
@@ -164,27 +162,28 @@ def count_cycle(cycle, N_qubit):
     """
     Counts the number if universal gates in terms of Toffoli, Cnots and 1 qubit gates
     Args:
-                    cycle = permutation cycle of int
-                    N_qubit = int
+        cycle = permutation cycle of int
+        N_qubit = int
     Returns:
-                    List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
+        List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
     """
     lenght = len(cycle)
+    cycle.append(cycle[0])
 
     # compute the two summation terms for the counting
     sum_neg = 0
     sum_diff = 0
-    for i in range(lenght - 1):
+    for i in range(lenght):
         sum_neg += N_qubit - hamming_weight(cycle[i])
         sum_diff += hamming_weight(cycle[i] ^ cycle[i + 1])
 
-    sum_neg += N_qubit - hamming_weight(cycle[lenght - 1])
+    sum_neg += N_qubit - hamming_weight(cycle[lenght])
 
     N_toffoli = 2 * (lenght + 1) * (N_qubit - 1)
     N_cnot = (2 * (lenght + 1)) + (2 * sum_diff)
     N_1_gate = (4 * (lenght + 1)) + (2 * sum_neg) + (4 * sum_diff)
 
-    return [N_toffoli, N_cnot, N_1_gate]
+    return np.array([N_toffoli, N_cnot, N_1_gate])
 
 
 def main(vector, nonzero_locations, N_qubit):
@@ -194,27 +193,14 @@ def main(vector, nonzero_locations, N_qubit):
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
     # add zeros to the vector until it has as lenght a power of 2
-    sparsity = len(nonzero_locations)
-
-    if sparsity & (sparsity - 1) != 0:
-        extra_zeros = 2 ** (int(np.log2(sparsity)) + 1) - sparsity
-        counter_pad = 0
-        for i in range(2**N_qubit):
-            if i not in nonzero_locations:
-                vector = np.insert(vector, i, 0)
-                nonzero_locations = np.insert(nonzero_locations, i, i)
-                counter_pad += 1
-            if counter_pad == extra_zeros:
-                break
-
-    d = int(np.log2(len(nonzero_locations)))  # sparsity
+    vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     # standard Grover Rudolph
     angle_phase_dict = phase_angle_dict(vector)
     count = gate_count(angle_phase_dict)
 
     # Permutation algorithm
-    permutation = build_permutation(nonzero_locations, N_qubit - d)
+    permutation = build_permutation(nonzero_locations)
 
     for cycle in permutation:
         count += count_cycle(cycle, N_qubit)

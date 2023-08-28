@@ -4,15 +4,16 @@ from state_preparation import *
 # Creates 2^N * repeat data
 # Notice that each time you run the program more data are added to the file referring to n_qubit, if you want to avoid this open the file with 'w' instead of 'a'
 
-n_qubit = 10
+n_qubit = 16
 N = 2**n_qubit
 repeat = 1
-total_steps = repeat * (N - 1)
+percentage = 5  # sparsity percentage
+step = 10  # every step in sparsity get one data
 
-with open(f"test/Gate_count_{n_qubit}.npy", "w") as f:
-    for i in range(repeat):
-        for d in range(1, 2**n_qubit):
-            vector, nonzero_loc = sparse_couple_vect(n_qubit, d)
+with open(f"data/Gate_count_{n_qubit}.npy", "w") as f:
+    for d in range(1, int(N * percentage / 100), step):
+        for i in range(repeat):
+            vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
             count = main(vector, nonzero_loc, n_qubit)
 
             # compare with ver 1.0 GR
@@ -26,9 +27,9 @@ with open(f"test/Gate_count_{n_qubit}.npy", "w") as f:
             f.write(
                 f"{d}\t{count[0]}\t{count[1]}\t{count[2]}\t{oldcount[0]}\t{oldcount[1]}\t{oldcount[2]}\n"
             )
-            print(
-                d + (i * (N - 1)),
-                "/",
-                total_steps,
-                "---------------------------------------------------------------------",
-            )  # check status
+        print(
+            int(d / step),
+            "/",
+            int(N * percentage / (step * 100)),
+            "---------------------------------------------------------------------",
+        )  # check status
