@@ -146,18 +146,7 @@ def main_circuit(vector, nonzero_locations, N_qubit):
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
     # add zeros to the vector until it has as lenght a power of 2
-    sparsity = len(nonzero_locations)
-
-    if sparsity & (sparsity - 1) != 0:
-        extra_zeros = 2 ** (int(np.log2(sparsity)) + 1) - sparsity
-        counter_pad = 0
-        for i in range(2**N_qubit):
-            if i not in nonzero_locations:
-                vector = np.insert(vector, i, 0)
-                nonzero_locations = np.insert(nonzero_locations, i, i)
-                counter_pad += 1
-            if counter_pad == extra_zeros:
-                break
+    vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     d = int(np.log2(len(nonzero_locations)))  # sparsity
 
@@ -170,7 +159,7 @@ def main_circuit(vector, nonzero_locations, N_qubit):
     phi = np.kron(phi, e0)
 
     # permutations
-    permutation = build_permutation(nonzero_locations, N_qubit - d)
+    permutation = build_permutation(nonzero_locations)
 
     for cycle in permutation:
         phi = cycle_circuit(cycle, phi)

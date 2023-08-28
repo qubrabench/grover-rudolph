@@ -27,15 +27,15 @@ def merge_dict(dict1, dict2):
 
     for k1, v1 in dict1.items():
         if k1 not in dict2:
-            dict3[k1] = [v1, None]
+            dict3[k1] = np.array([v1, 0.0])
 
     for k1, v1 in dict1.items():
         if k1 in dict2:
-            dict3[k1] = [v1, dict2[k1]]
+            dict3[k1] = np.array([v1, dict2[k1]])
 
     for k2, v2 in dict2.items():
         if k2 not in dict1:
-            dict3[k2] = [None, v2]
+            dict3[k2] = np.array([0.0, v2])
 
     return dict3
 
@@ -88,8 +88,8 @@ def optimize_dict(dictionary):
             v2 = dictionary[k2]
             Merging_success = False
 
-            # Consider only different items with same value (angle)
-            if abs(v1 - v2) > ZERO:
+            # Consider only different items with same angle and phase
+            if not (abs(v1 - v2) < ZERO).all():
                 continue
 
             position = where_diff_one(k1, k2)
