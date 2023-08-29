@@ -1,8 +1,17 @@
 import numpy as np
-from numpy import linalg
 from itertools import combinations
-import random
 import scipy as sp
+
+__all__ = [
+    "ZERO",
+    "merge_dict",
+    "where_diff_one",
+    "optimize_dict",
+    "reduced_density_matrix",
+    "generate_sparse_vect",
+    "hamming_weight",
+    "pad_to_pow2",
+]
 
 # global zero precision
 ZERO = 1e-8
@@ -44,9 +53,9 @@ def where_diff_one(string_1, string_2) -> int | None:
     """
     Checks if two string differ by ONLY one char that is not 'e', and it finds its position
     It is checking if two controlled gates can be merged: if they differ in only one control
-    >>> '010', '011' -> 2
-    >>> '011', '100' -> None
-    >>> 'e10', 'e10' -> None
+    >>> assert where_diff_one('010', '011') == 2
+    >>> assert where_diff_one('011', '100') is None
+    >>> assert where_diff_one('e10', 'e10') is None
 
     Args:
         string1, string2 = string made of '0', '1', 'e'
@@ -73,7 +82,7 @@ def optimize_dict(dictionary):
     """
     Optimize the dictionary by merging some gates in one:
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
-    >>>{'11':3.14, ; '10':3.14} becomes {'1e':3.14} where 'e' means no control (identity)
+    >> {'11':3.14, ; '10':3.14} becomes {'1e':3.14} where 'e' means no control (identity)
     Args:
         dictionary = {key = (string of '0', '1') : value = float}
     Returns:

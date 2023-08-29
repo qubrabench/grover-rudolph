@@ -6,3 +6,5 @@ pytest~=7.3
 ruff~=0.0
 mypy~=1.2
 pandas-stubs~=2.0
+
+scipy~=1.11.1
