@@ -1,14 +1,15 @@
-# usecase-template [![CI](../../actions/workflows/ci.yaml/badge.svg?branch=main)](../../actions/workflows/ci.yaml)
-An example qubrabench use-case
+# Grover-Rudolph Algorithm [![CI](../../actions/workflows/ci.yaml/badge.svg?branch=main)](../../actions/workflows/ci.yaml)
+
+Work at LUH on Grover-Rudolph algorithm for state preparation.
 
 ## Usage
-Add your code in folder `usecase/`.
+Add your code in folder `Algorithm/`.
 
 Recommended structure:
 ```
 .
 ├── requirements.txt       # add all dependencies here
-└── usecase
+└── Algorithm
     ├── algorithm.py       # source code for your implementation
     ├── algorithm_test.py  # unittests for above code
     └── algorithm.ipynb    # notebook with executions of the algorithm, example usages, plots, visualizations etc.
