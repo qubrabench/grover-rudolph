@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from helping_sp import generate_sparse_vect
 from state_preparation import (
@@ -5,6 +6,8 @@ from state_preparation import (
     not_op_phase_angle_dict,
     gate_count,
 )
+
+data_folder = Path(__file__).parent / "data"
 
 
 def generate_data():
@@ -20,7 +23,7 @@ def generate_data():
     percentage = 100  # sparsity percentage
     step = 10  # every step in sparsity get one data
 
-    with open(f"data/Gate_count_{n_qubit}.npy", "w") as f:
+    with open(data_folder / f"Gate_count_{n_qubit}.npy", "w") as f:
         for d in range(1, int(N * percentage / 100), step):
             for i in range(repeat):
                 vector, nonzero_loc = generate_sparse_vect(n_qubit, d)

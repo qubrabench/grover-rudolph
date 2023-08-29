@@ -1,14 +1,17 @@
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
 # from scipy import stats
+
+data_folder = Path(__file__).parent / "data"
 
 
 def generate_plots():
     n_qubit = 10
 
     d, c_t, c2, c1, op_ct, op_c2, op_c1 = np.loadtxt(
-        f"data/Gate_count_{n_qubit}.npy", unpack=True
+        data_folder / f"Gate_count_{n_qubit}.npy", unpack=True
     )
 
     fig, axs = plt.subplots(2)
