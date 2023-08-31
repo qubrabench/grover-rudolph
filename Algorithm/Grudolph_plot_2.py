@@ -2,18 +2,50 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-# from scipy import stats
-
 data_folder = Path(__file__).parent / "data"
 
 
-def generate_plots():
-    n_qubit = 10
+def generate_plots(n_qubit):
+    (
+        d,
+        opt_old0,
+        opt_old1,
+        opt_old2,
+        opt_old_err0,
+        opt_old_err1,
+        opt_old_err2,
+        perm_opt0,
+        perm_opt1,
+        perm_opt2,
+        perm_opt_err0,
+        perm_opt_err1,
+        perm_opt_err2,
+        oldcount0,
+        oldcount1,
+        oldcount2,
+        oldcount_err0,
+        oldcount_err1,
+        oldcount_err2,
+        optcount0,
+        optcount1,
+        optcount2,
+        optcount_err0,
+        optcount_err1,
+        optcount_err2,
+        perm0,
+        perm1,
+        perm2,
+        perm_err0,
+        perm_err1,
+        perm_err2,
+    ) = np.loadtxt(f"data/Count_{n_qubit}.npy", unpack=True)
 
-    d, c_t, c2, c1, op_ct, op_c2, op_c1 = np.loadtxt(
-        data_folder / f"Gate_count_{n_qubit}.npy", unpack=True
+    plt.errorbar(d, opt_old0, yerr=opt_old_err0, color="r", label="Toffoli opt/not opt")
+    plt.errorbar(d, opt_old1, yerr=opt_old_err1, color="g", label="CNOT opt/ not opt")
+    plt.errorbar(
+        d, opt_old2, yerr=opt_old_err2, color="b", label="1-qbt gates opt/ not opt"
     )
-
+    """
     fig, axs = plt.subplots(2)
 
     axs[0].scatter(d, c_t, color="r", label="Toffoli")
@@ -46,7 +78,6 @@ def generate_plots():
     plt.show()
     # FIT
 
-    """
     slope, intercept, r_value, p_value, std_err = stats.linregress(d, c_t)
     print(f"Fit Number of Toffoli gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
 

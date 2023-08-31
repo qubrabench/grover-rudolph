@@ -4,7 +4,6 @@ import scipy as sp
 
 __all__ = [
     "ZERO",
-    "merge_dict",
     "where_diff_one",
     "optimize_dict",
     "reduced_density_matrix",
@@ -15,38 +14,6 @@ __all__ = [
 
 # global zero precision
 ZERO = 1e-8
-
-
-def merge_dict(dict1, dict2):
-    """
-    Merges the angle dictionary and the phase dictionary by joining their values in a list
-    Note that the order of the values in the dictionary is important for later, since the gates don't commute
-    Thus, we do first all the rotations (phase == None), then the phase together with the rotations, in the end only the phases (angle == None)
-
-    Args:
-        dict1 = dictionary of angles
-        dict2 = dictionary of phases
-
-    Returns:
-        A dictionary with elements of the form {key : [dict1[key], dict2[key]]}.
-        If dict1[key] doesn't exist its value is set to None. Same for dict2.
-    """
-
-    dict3 = {}
-
-    for k1, v1 in dict1.items():
-        if k1 not in dict2:
-            dict3[k1] = np.array([v1, 0.0])
-
-    for k1, v1 in dict1.items():
-        if k1 in dict2:
-            dict3[k1] = np.array([v1, dict2[k1]])
-
-    for k2, v2 in dict2.items():
-        if k2 not in dict1:
-            dict3[k2] = np.array([0.0, v2])
-
-    return dict3
 
 
 def where_diff_one(string_1, string_2) -> int | None:
@@ -98,7 +65,7 @@ def optimize_dict(dictionary):
             Merging_success = False
 
             # Consider only different items with same angle and phase
-            if not (abs(v1 - v2) < ZERO).all():
+            if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
                 continue
 
             position = where_diff_one(k1, k2)

@@ -6,7 +6,6 @@ The algorithm used is Grover Rudolph.
 import numpy as np
 from helping_sp import (
     ZERO,
-    merge_dict,
     optimize_dict,
     hamming_weight,
     pad_to_pow2,
@@ -14,7 +13,6 @@ from helping_sp import (
 
 __all__ = [
     "phase_angle_dict",
-    "not_op_phase_angle_dict",
     "gate_count",
     "build_permutation",
     "count_cycle",
@@ -22,144 +20,111 @@ __all__ = [
 ]
 
 
-def phase_angle_dict(vector):
+def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
     """
     Generate a list of dictonaries for the angles given the amplitude vector
     Each dictonary is of the form:
     {key = ('0' if apply controlled on the state 0, '1' if controlled on 1, 'e' if apply identy) : value = [angle, phase]
-    >> {'00' : [1.2, 0.]} the gate is a rotation of 1.2 and a phase gate with phase 0, controlled on the state |00>
+    >>>{'00' : [1.2, 0.]} the gate is a rotation of 1.2 and a phase gate with phase 0, controlled on the state |00>
     ~you are basically building the cicuit vertically, where each element of the dictionary is one layer of the circuit
     if the dictonary is in position 'i' of the list (starting from 0), its key will be of length 'i', thus the controls act on the fist i qubits
 
     Args:
-        vector = np.array of complex type. Its entries have to be normalized.
+        vector = list of complex numbers. Its entries have to be normalized.
+        nonzero_locations = list on int numbers indicating the non zero locations
+        n_qubit = int
+        optimization = Boolean variable, decide if optimize the angles or not
     Returns:
         list of dictionaries
     """
 
-    # if vector is not a power of 2 make it so
-    if len(vector) & (len(vector) - 1) != 0:
-        extra_zeros = 2 ** (int(np.log2(len(vector))) + 1) - len(vector)
-        vector = np.pad(vector, (0, extra_zeros))
-
     if abs(np.linalg.norm(vector) - 1.0) > ZERO:
         raise ValueError("vector should be normalized")
 
-    n_qubit = int(np.log2(len(vector)))
     list_dictionaries = []
 
     for qbit in range(n_qubit):
-        # Compute the angles recursively
-        phase_vector = [
-            np.exp(1j * np.angle(vector[::2][i])) for i in range(len(vector[::2]))
-        ]
-        new_vector = (
-            np.sqrt(abs(vector[::2]) ** 2 + abs(vector[1::2]) ** 2) * phase_vector
-        )
+        new_nonzero_locations = []
+        new_vector = []
+        values = []
 
-        angles = [
-            2 * np.arccos(np.clip(abs((vector[::2][i] / new_vector[i])), -1, 1))
-            if (abs(new_vector[i]) > ZERO)
-            else 0
-            for i in range(len(new_vector))
-        ]
-
-        phases = -np.angle(vector[::2]) + np.angle(vector[1::2])
-        vector = new_vector
-
-        # Assign keys(binary numbers) and values (angles, phases) in  two dictionaries
-
-        # the first gate is not controlled by anything, thus its key is ''
         lenght_dict = 2 ** (n_qubit - qbit - 1)
-        if lenght_dict == 1:
-            dict_angles = {"": angles[-1]} if abs(angles[-1]) > ZERO else {}
-            dict_phases = {"": phases[-1]} if abs(phases[-1]) > ZERO else {}
+        dictionary = {}
+        sparsity = len(nonzero_locations)
+        i = 0
 
-        # generate the keys: all binary numbers with fixed lenght
-        else:
-            dict_angles = {}
-            dict_phases = {}
-            for i in range(lenght_dict - 1, -1, -1):
-                k = str(bin(i))[2:].zfill(n_qubit - qbit - 1)
-                if abs(angles[i]) > ZERO:
-                    dict_angles[k] = angles[i]
+        while i in range(sparsity):
+            if i + 1 == sparsity:
+                loc = nonzero_locations[i]
+                new_nonzero_locations.append(int(np.floor(loc / 2)))
 
-                if abs(phases[i]) > ZERO:
-                    dict_phases[k] = phases[i]
+                if nonzero_locations[i] % 2 == 0:
+                    angle = 0.0
+                    phase = -np.angle(vector[i])
+                    new_vector.append(vector[i])
+                else:
+                    angle = np.pi
+                    phase = np.angle(vector[i])
+                    new_vector.append(abs(vector[i]))
 
-        dictionary = merge_dict(dict_angles, dict_phases)
-        dictionary_opt = optimize_dict(dictionary)
-        list_dictionaries.insert(0, dictionary_opt)
+                if (abs(angle) > ZERO) or (abs(phase) > ZERO):
+                    if lenght_dict == 1:
+                        dictionary = {"": [angle, phase]}
+                    else:
+                        key = str(bin(int(np.floor(loc / 2)))[2:]).zfill(
+                            n_qubit - qbit - 1
+                        )
+                        dictionary[key] = [angle, phase]
 
-    return list_dictionaries
+                i += 1
+                continue
 
+            # check consecutives numbers and even position
+            loc0 = nonzero_locations[i]
+            loc1 = nonzero_locations[i + 1]
+            if (loc1 - loc0 == 1) and (loc0 % 2 == 0):
+                new_component = np.exp(1j * np.angle(vector[i])) * np.sqrt(
+                    abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
+                )
+                new_vector.append(new_component)
+                new_nonzero_locations.append(int(np.floor(loc0 / 2)))
 
-def not_op_phase_angle_dict(vector):
-    """
-    Generate a list of dictonaries for the angles given the amplitude vector
-    Each dictonary is of the form:
-    {key = ('0' if apply controlled on the state 0, '1' if controlled on 1, 'e' if apply identy) : value = [angle, phase]
-    >> {'00' : [1.2, 0.]} the gate is a rotation of 1.2 and a phase gate with phase 0, controlled on the state |00>
-    ~you are basically building the cicuit vertically, where each element of the dictionary is one layer of the circuit
-    if the dictonary is in position 'i' of the list (starting from 0), its key will be of length 'i', thus the controls act on the fist i qubits
+                angle = (
+                    2 * np.arccos(np.clip(abs(vector[i] / new_component), -1, 1))
+                    if abs(new_component) > ZERO
+                    else 0.0
+                )
+                phase = -np.angle(vector[i]) + np.angle(vector[i + 1])
+                i += 1
+            else:
+                if loc0 % 2 == 0:
+                    angle = 0.0
+                    phase = -np.angle(vector[i])
+                    new_vector.append(vector[i])
+                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
 
-    Args:
-        vector = np.array of complex type. Its entries have to be normalized.
-    Returns:
-        list of dictionaries
-    """
+                else:
+                    angle = np.pi
+                    phase = np.angle(vector[i])
+                    new_vector.append(abs(vector[i]))
+                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
 
-    # if vector is not a power of 2 make it so
-    if len(vector) & (len(vector) - 1) != 0:
-        extra_zeros = 2 ** (int(np.log2(len(vector))) + 1) - len(vector)
-        vector = np.pad(vector, (0, extra_zeros))
+            i += 1
 
-    if abs(np.linalg.norm(vector) - 1.0) > ZERO:
-        raise ValueError("vector should be normalized")
+            if (abs(angle) > ZERO) or (abs(phase) > ZERO):
+                if lenght_dict == 1:
+                    dictionary = {"": [angle, phase]}
+                else:
+                    key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
+                        n_qubit - qbit - 1
+                    )
+                    dictionary[key] = [angle, phase]
 
-    n_qubit = int(np.log2(len(vector)))
-    list_dictionaries = []
-
-    for qbit in range(n_qubit):
-        # Compute the angles recursively
-        phase_vector = [
-            np.exp(1j * np.angle(vector[::2][i])) for i in range(len(vector[::2]))
-        ]
-        new_vector = (
-            np.sqrt(abs(vector[::2]) ** 2 + abs(vector[1::2]) ** 2) * phase_vector
-        )
-
-        angles = [
-            2 * np.arccos(np.clip(abs((vector[::2][i] / new_vector[i])), -1, 1))
-            if (abs(new_vector[i]) > ZERO)
-            else 0
-            for i in range(len(new_vector))
-        ]
-
-        phases = -np.angle(vector[::2]) + np.angle(vector[1::2])
         vector = new_vector
+        nonzero_locations = new_nonzero_locations
 
-        # Assign keys(binary numbers) and values (angles, phases) in  two dictionaries
-
-        # the first gate is not controlled by anything, thus its key is ''
-        lenght_dict = 2 ** (n_qubit - qbit - 1)
-        if lenght_dict == 1:
-            dict_angles = {"": angles[-1]} if abs(angles[-1]) > ZERO else {}
-            dict_phases = {"": phases[-1]} if abs(phases[-1]) > ZERO else {}
-
-        # generate the keys: all binary numbers with fixed lenght
-        else:
-            dict_angles = {}
-            dict_phases = {}
-            for i in range(lenght_dict - 1, -1, -1):
-                k = str(bin(i))[2:].zfill(n_qubit - qbit - 1)
-                if abs(angles[i]) > ZERO:
-                    dict_angles[k] = angles[i]
-
-                if abs(phases[i]) > ZERO:
-                    dict_phases[k] = phases[i]
-
-        dictionary = merge_dict(dict_angles, dict_phases)
+        if optimization == True:
+            dictionary_opt = optimize_dict(dictionary)
         list_dictionaries.insert(0, dictionary)
 
     return list_dictionaries
@@ -276,7 +241,8 @@ def main(vector, nonzero_locations, N_qubit):
     vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     # standard Grover Rudolph
-    angle_phase_dict = phase_angle_dict(vector)
+    d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity
+    angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d)
     count = gate_count(angle_phase_dict)
 
     # Permutation algorithm

@@ -80,7 +80,7 @@ def cycle_circuit(cycle, state):
         matrix implementing the permutation
     """
 
-    # length = len(cycle)
+    lenght = len(cycle)
     N_qubit = int(np.log2(len(state)))
 
     # Compute the list with the bit difference (xor) between each element and the following one of cycle
@@ -102,7 +102,7 @@ def cycle_circuit(cycle, state):
     P0 = np.outer(e0, e0)  # Projector
     P1 = np.outer(e1, e1)
 
-    Id = np.eye(2)
+    I = np.eye(2)
     X = np.array([[float(0), float(1)], [float(1), float(0)]])
 
     for j in range(len(cycle)):
@@ -117,13 +117,13 @@ def cycle_circuit(cycle, state):
             elif nonzero_loc[i] == "1":
                 P = np.kron(P, P1)
             if diff[i] == "0":
-                X_diff = np.kron(X_diff, Id)
+                X_diff = np.kron(X_diff, I)
             elif diff[i] == "1":
                 X_diff = np.kron(X_diff, X)
 
-        state = (np.kron(P, X) + np.kron(np.eye(2 ** (N_qubit - 1)) - P, Id)) @ state
+        state = (np.kron(P, X) + np.kron(np.eye(2 ** (N_qubit - 1)) - P, I)) @ state
         state = (
-            np.kron(X_diff, P1) + np.kron(np.eye(2 ** (N_qubit - 1)), Id - P1)
+            np.kron(X_diff, P1) + np.kron(np.eye(2 ** (N_qubit - 1)), I - P1)
         ) @ state
 
     return state
@@ -146,12 +146,11 @@ def main_circuit(vector, nonzero_locations, N_qubit):
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
-    # add zeros to the vector until it has as length a power of 2
-    vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
+    # add zeros to the vector until it has as lenght a power of 2
+    # vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
-    d = int(np.log2(len(nonzero_locations)))  # sparsity
-
-    angle_phase_dict = phase_angle_dict(vector)
+    d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity
+    angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d)
     phi = circuit_GR(angle_phase_dict)
 
     # ancilla qubits
@@ -173,12 +172,11 @@ def main_circuit(vector, nonzero_locations, N_qubit):
 
 
 def test_circuit():
-    n_qubit = 6
+    n_qubit = 7
     N = 2**n_qubit
 
     for d in range(1, 2**n_qubit):
         vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
-
         # build the respective density matrix
         vect = np.zeros(N, dtype=np.complex128)
         for j in range(len(vector)):
@@ -188,4 +186,6 @@ def test_circuit():
         # Build with improved grover rudolph
         rho_GR = main_circuit(vector, nonzero_loc, n_qubit)
 
-        assert (abs(rho_GR - rho_input) < ZERO).all(), "test failed"
+        assert (
+            abs(rho_GR - rho_input) < ZERO
+        ).all(), "test failed for {} with loc {}".format(vector, nonzero_loc)
