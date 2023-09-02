@@ -19,7 +19,7 @@ def generate_data(n_qubit, repeat=1, percentage=100, step=1):
 
     N = 2**n_qubit
 
-    with open(f"data/Count_{n_qubit}.npy", "w") as f:
+    with open(data_folder / f"Count_{n_qubit}.npy", "w") as f:
         for d in range(1, int(N * percentage / 100), step):
             opt_old = np.empty((repeat, 3), dtype=float)
             perm_opt = np.empty((repeat, 3), dtype=float)

@@ -38,7 +38,7 @@ def generate_plots(n_qubit):
         perm_err0,
         perm_err1,
         perm_err2,
-    ) = np.loadtxt(f"data/Count_{n_qubit}.npy", unpack=True)
+    ) = np.loadtxt(data_folder / f"Count_{n_qubit}.npy", unpack=True)
 
     plt.errorbar(d, opt_old0, yerr=opt_old_err0, color="r", label="Toffoli opt/not opt")
     plt.errorbar(d, opt_old1, yerr=opt_old_err1, color="g", label="CNOT opt/ not opt")
