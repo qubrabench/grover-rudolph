@@ -102,7 +102,7 @@ def cycle_circuit(cycle, state):
     P0 = np.outer(e0, e0)  # Projector
     P1 = np.outer(e1, e1)
 
-    I = np.eye(2)
+    Id = np.eye(2)
     X = np.array([[float(0), float(1)], [float(1), float(0)]])
 
     for j in range(len(cycle)):
@@ -117,13 +117,13 @@ def cycle_circuit(cycle, state):
             elif nonzero_loc[i] == "1":
                 P = np.kron(P, P1)
             if diff[i] == "0":
-                X_diff = np.kron(X_diff, I)
+                X_diff = np.kron(X_diff, Id)
             elif diff[i] == "1":
                 X_diff = np.kron(X_diff, X)
 
-        state = (np.kron(P, X) + np.kron(np.eye(2 ** (N_qubit - 1)) - P, I)) @ state
+        state = (np.kron(P, X) + np.kron(np.eye(2 ** (N_qubit - 1)) - P, Id)) @ state
         state = (
-            np.kron(X_diff, P1) + np.kron(np.eye(2 ** (N_qubit - 1)), I - P1)
+            np.kron(X_diff, P1) + np.kron(np.eye(2 ** (N_qubit - 1)), Id - P1)
         ) @ state
 
     return state
