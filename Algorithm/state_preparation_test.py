@@ -1,8 +1,6 @@
 import numpy as np
-from helping_sp import generate_sparse_vect, reduced_density_matrix
+from helping_sp import generate_sparse_vect, reduced_density_matrix, ZERO
 from state_preparation import phase_angle_dict, build_permutation
-
-from helping_sp import ZERO, pad_to_pow2
 
 
 def circuit_GR(dict_list):
@@ -80,7 +78,6 @@ def cycle_circuit(cycle, state):
         matrix implementing the permutation
     """
 
-    length = len(cycle)
     N_qubit = int(np.log2(len(state)))
 
     # Compute the list with the bit difference (xor) between each element and the following one of cycle
