@@ -25,7 +25,7 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
     Generate a list of dictonaries for the angles given the amplitude vector
     Each dictonary is of the form:
     {key = ('0' if apply controlled on the state 0, '1' if controlled on 1, 'e' if apply identy) : value = [angle, phase]
-    >>>{'00' : [1.2, 0.]} the gate is a rotation of 1.2 and a phase gate with phase 0, controlled on the state |00>
+    {'00' : [1.2, 0.]} the gate is a rotation of 1.2 and a phase gate with phase 0, controlled on the state |00>
     ~you are basically building the cicuit vertically, where each element of the dictionary is one layer of the circuit
     if the dictonary is in position 'i' of the list (starting from 0), its key will be of length 'i', thus the controls act on the fist i qubits
 
