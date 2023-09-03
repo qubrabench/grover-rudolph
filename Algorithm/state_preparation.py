@@ -48,7 +48,7 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
         new_vector = []
         values = []
 
-        lenght_dict = 2 ** (n_qubit - qbit - 1)
+        length_dict = 2 ** (n_qubit - qbit - 1)
         dictionary = {}
         sparsity = len(nonzero_locations)
         i = 0
@@ -68,7 +68,7 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
                     new_vector.append(abs(vector[i]))
 
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
-                    if lenght_dict == 1:
+                    if length_dict == 1:
                         dictionary = {"": [angle, phase]}
                     else:
                         key = str(bin(int(np.floor(loc / 2)))[2:]).zfill(
@@ -112,7 +112,7 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
             i += 1
 
             if (abs(angle) > ZERO) or (abs(phase) > ZERO):
-                if lenght_dict == 1:
+                if length_dict == 1:
                     dictionary = {"": [angle, phase]}
                 else:
                     key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
@@ -214,21 +214,21 @@ def count_cycle(cycle, N_qubit):
     Returns:
         List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
     """
-    lenght = len(cycle)
+    length = len(cycle)
     cycle.append(cycle[0])
 
     # compute the two summation terms for the counting
     sum_neg = 0
     sum_diff = 0
-    for i in range(lenght):
+    for i in range(length):
         sum_neg += N_qubit - hamming_weight(cycle[i])
         sum_diff += hamming_weight(cycle[i] ^ cycle[i + 1])
 
-    sum_neg += N_qubit - hamming_weight(cycle[lenght])
+    sum_neg += N_qubit - hamming_weight(cycle[length])
 
-    N_toffoli = 2 * (lenght + 1) * (N_qubit - 1)
-    N_cnot = (2 * (lenght + 1)) + (2 * sum_diff)
-    N_1_gate = (4 * (lenght + 1)) + (2 * sum_neg) + (4 * sum_diff)
+    N_toffoli = 2 * (length + 1) * (N_qubit - 1)
+    N_cnot = (2 * (length + 1)) + (2 * sum_diff)
+    N_1_gate = (4 * (length + 1)) + (2 * sum_neg) + (4 * sum_diff)
 
     return np.array([N_toffoli, N_cnot, N_1_gate])
 
@@ -237,7 +237,7 @@ def main(vector, nonzero_locations, N_qubit):
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
-    # add zeros to the vector until it has as lenght a power of 2
+    # add zeros to the vector until it has as length a power of 2
     vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     # standard Grover Rudolph

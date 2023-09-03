@@ -80,7 +80,7 @@ def cycle_circuit(cycle, state):
         matrix implementing the permutation
     """
 
-    lenght = len(cycle)
+    length = len(cycle)
     N_qubit = int(np.log2(len(state)))
 
     # Compute the list with the bit difference (xor) between each element and the following one of cycle
@@ -146,7 +146,7 @@ def main_circuit(vector, nonzero_locations, N_qubit):
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
-    # add zeros to the vector until it has as lenght a power of 2
+    # add zeros to the vector until it has as length a power of 2
     # vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity

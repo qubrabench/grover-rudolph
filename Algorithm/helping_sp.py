@@ -117,8 +117,8 @@ def generate_sparse_vect(n_qubit, d):
             Number of qubits N, sparsity d
 
         Returns:
-            vector = complex array of lenght d, with the values of the amplitudes
-            nonzero_locations = int array of lenght d (ordered) with the position of the non-zero element
+            vector = complex array of length d, with the values of the amplitudes
+            nonzero_locations = int array of length d (ordered) with the position of the non-zero element
     """
     N = 2**n_qubit
 
