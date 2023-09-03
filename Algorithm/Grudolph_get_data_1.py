@@ -3,7 +3,6 @@ import numpy as np
 from helping_sp import generate_sparse_vect
 from state_preparation import (
     phase_angle_dict,
-    not_op_phase_angle_dict,
     gate_count,
 )
 
