@@ -1,12 +1,10 @@
 from pathlib import Path
 import numpy as np
-from helping_sp import generate_sparse_vect
-from state_preparation import (
-    phase_angle_dict,
-    gate_count,
-)
+from helping_sp import generate_sparse_vect, ZERO, optimize_dict
+from state_preparation import phase_angle_dict, gate_count, main
 
-data_folder = Path(__file__).parent / "data"
+data_folder = Path(__file__).parent.parent / "data"  # ../data
+data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
 
 
 def generate_data(n_qubit, repeat=1, percentage=100, step=1):
@@ -80,4 +78,5 @@ def generate_data(n_qubit, repeat=1, percentage=100, step=1):
 
 
 if __name__ == "__main__":
-    generate_data()
+    for n in [2, 3, 4, 5]:
+        generate_data(n)

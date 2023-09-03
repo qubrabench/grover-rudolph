@@ -2,7 +2,8 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-data_folder = Path(__file__).parent / "data"
+data_folder = Path(__file__).parent.parent / "data"  # ../data
+data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
 
 
 def generate_plots(n_qubit):
@@ -90,4 +91,5 @@ def generate_plots(n_qubit):
 
 
 if __name__ == "__main__":
-    generate_plots()
+    for n in [2, 3, 4, 5]:
+        generate_plots(n)

@@ -9,6 +9,7 @@ Recommended structure:
 ```
 .
 ├── requirements.txt       # add all dependencies here
+├── data                   # data folder, not committed by default
 └── Algorithm
     ├── algorithm.py       # source code for your implementation
     ├── algorithm_test.py  # unittests for above code
