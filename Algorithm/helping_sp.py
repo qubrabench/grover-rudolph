@@ -9,7 +9,6 @@ __all__ = [
     "reduced_density_matrix",
     "generate_sparse_vect",
     "hamming_weight",
-    "pad_to_pow2",
 ]
 
 # global zero precision
@@ -187,18 +186,3 @@ def hamming_weight(n: int):
         n &= n - 1
     return h_weight
 
-
-def pad_to_pow2(vector, nonzero_locations, N_qubit):
-    sparsity = len(nonzero_locations)
-
-    if sparsity & (sparsity - 1) != 0:
-        extra_zeros = 2 ** (int(np.log2(sparsity)) + 1) - sparsity
-        counter_pad = 0
-        for i in range(2**N_qubit):
-            if i not in nonzero_locations:
-                vector = np.insert(vector, i, 0)
-                nonzero_locations = np.insert(nonzero_locations, i, i)
-                counter_pad += 1
-            if counter_pad == extra_zeros:
-                break
-    return vector, nonzero_locations

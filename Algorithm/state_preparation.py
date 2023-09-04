@@ -4,7 +4,7 @@ The algorithm used is Grover Rudolph.
 """
 
 import numpy as np
-from helping_sp import ZERO, hamming_weight, pad_to_pow2, x_gate_merging
+from helping_sp import ZERO, hamming_weight, x_gate_merging
 
 __all__ = [
     "phase_angle_dict",
@@ -233,9 +233,6 @@ def count_cycle(cycle, N_qubit):
 def main(vector, nonzero_locations, N_qubit):
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
-
-    # add zeros to the vector until it has as length a power of 2
-    vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     # standard Grover Rudolph
     d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity

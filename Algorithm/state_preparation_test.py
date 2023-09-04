@@ -144,7 +144,6 @@ def main_circuit(vector, nonzero_locations, N_qubit):
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
     # add zeros to the vector until it has as length a power of 2
-    # vector, nonzero_locations = pad_to_pow2(vector, nonzero_locations, N_qubit)
 
     d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity
     angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d)
