@@ -160,6 +160,9 @@ def gate_count(dict_list):
                 N_cnot += 2
                 N_1_gate += 4 + (2 * count0)
 
+    # Subtract the two x-gates that form an identity from the total count of 1-qubit gates
+    N_1_gate -= 2 * x_gate_merging(dictionary)
+
     count = np.array([N_toffoli, N_cnot, N_1_gate])
     return count
 

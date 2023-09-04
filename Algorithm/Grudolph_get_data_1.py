@@ -72,11 +72,10 @@ def generate_data(n_qubit, repeat=1, percentage=100, step=1):
             print(
                 int(d / step),
                 "/",
-                int(N * percentage / (step * 100)),
+                int(N * percentage / (100 * step)),
                 "---------------------------------------------------------------------",
             )  # check status
 
 
 if __name__ == "__main__":
-    for n in [2, 3, 4, 5]:
-        generate_data(n)
+    generate_data(20, percentage=1, step=100, repeat=10)

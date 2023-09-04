@@ -107,6 +107,49 @@ def reduced_density_matrix(rho, traced_dim):
     return reduced_rho
 
 
+def x_gate_merging(dictionary):
+    """
+    Counts the number of x-gates that can be merged given an optimized dictionary.
+
+    Parameters:
+        dictionary (dict): A dictionary containing quantum gates represented as keys.
+
+    Returns:
+        int (count): The count of x-gates that can be merged.
+    """
+
+    # Extract the keys from the dictionary
+    keys = list(dictionary.keys())
+    # Initialize the x-gate count
+    x_gates = 0
+
+    # Iterate through consecutive pairs of keys
+    for i in range(len(keys) - 1):
+        key1 = keys[i]
+        key2 = keys[i + 1]
+
+        # Flag to indicate if x-gate merge occurs
+        is_equal = False
+
+        # Iterate through characters at each position
+        for position in range(min(len(key1), len(key2))):
+            char1 = key1[position]
+            char2 = key2[position]
+
+            # Check if x-gate merging condition is met: if two consecutive bit strings have a '0' at the same position
+            if char1 == "0" and char2 == "0":
+                is_equal = True
+                break
+            else:
+                continue
+
+        # Increment the counter if the condition is met
+        if is_equal:
+            x_gates += 1
+
+    return x_gates
+
+
 def generate_sparse_vect(n_qubit, d):
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
