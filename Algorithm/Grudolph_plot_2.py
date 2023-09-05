@@ -6,7 +6,7 @@ data_folder = Path(__file__).parent.parent / "data"  # ../data
 data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
 
 
-def generate_plots(n_qubit):
+def generate_plots(n_qubit, *, show_plots=True):
     (
         d,
         opt_old0,
@@ -67,7 +67,8 @@ def generate_plots(n_qubit):
     plt.legend()
     plt.xlabel("d")
 
-    plt.show()
+    if show_plots:
+        plt.show()
     """
     # FIT
 

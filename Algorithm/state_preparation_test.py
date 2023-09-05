@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from helping_sp import generate_sparse_vect, reduced_density_matrix, ZERO
 from state_preparation import phase_angle_dict, build_permutation
@@ -167,8 +168,8 @@ def main_circuit(vector, nonzero_locations, N_qubit):
     return density_matrix
 
 
-def test_circuit():
-    n_qubit = 7
+@pytest.mark.parametrize("n_qubit", [4, 5, 6])
+def test_circuit(n_qubit):
     N = 2**n_qubit
 
     for d in range(1, 2**n_qubit):
