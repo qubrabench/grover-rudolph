@@ -41,42 +41,39 @@ def generate_plots(n_qubit):
         perm_err2,
     ) = np.loadtxt(data_folder / f"Count_{n_qubit}.npy", unpack=True)
 
-    plt.errorbar(d, opt_old0, yerr=opt_old_err0, color="r", label="Toffoli opt/not opt")
-    plt.errorbar(d, opt_old1, yerr=opt_old_err1, color="g", label="CNOT opt/ not opt")
+
+
+    plt.errorbar(d, opt_old0, yerr=opt_old_err0, color="r", label="Toffoli")
+    plt.errorbar(d, opt_old1, yerr=opt_old_err1, color="g", label="CNOT")
     plt.errorbar(
-        d, opt_old2, yerr=opt_old_err2, color="b", label="1-qbt gates opt/ not opt"
+        d, opt_old2, yerr=opt_old_err2, color="b", label="1-qbt gates"
     )
-    """
-    fig, axs = plt.subplots(2)
-
-    axs[0].scatter(d, c_t, color="r", label="Toffoli")
-    axs[0].scatter(d, c2, color="g", label="CNOT")
-    axs[0].scatter(d, c1, color="b", label="1-qubit gates")
-
-    axs[1].scatter(d, op_ct, color="darkred", label="opt Toffoli")
-    axs[1].scatter(d, op_c2, color="darkgreen", label="opt CNOT")
-    axs[1].scatter(d, op_c1, color="darkblue", label="opt 1-qubit gates")
-
-    axs[1].set_xlabel("Sparsity d")
-    axs[0].set_ylabel("Permutation Grover Rudolph")
-    axs[1].set_ylabel("Improved Grover Rudolph/Permutation")
-
-    axs[0].legend()
-    axs[1].legend()
-
-    plt.show()
+        plt.axhline(
+        y=1.0,
+        color="k",
+        linestyle="dashed",
+    )
+    plt.xlabel('d')
+    plt.title('Number of gates with optimized GR / Number of gates with standard GR')
+    plt.legend()
+    
 
     plt.figure()
 
-    plt.scatter(d, op_ct / c_t, color="r", label="Toffoli opt/not opt")
-    plt.scatter(d, op_c2 / c2, color="g", label="CNOT opt/ not opt")
-    plt.scatter(d, op_c1 / c1, color="b", label="1-qbt gates opt/ not opt")
-
-    plt.plot(d, d * 0 + 1.0, color="k", linestyle="dashed")
-
+    plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="r", label="Toffoli")
+    plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="g", label="CNOT")
+    plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="b", label="1-qbt gates")
+    plt.axhline(
+        y=1.0,
+        color="k",
+        linestyle="dashed",
+    )
+    plt.title('Number of gates with permutation GR / Number of gates with optimized GR')
     plt.legend()
+    plt.xlabel('d')
 
     plt.show()
+    '''
     # FIT
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(d, c_t)
@@ -87,9 +84,8 @@ def generate_plots(n_qubit):
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(d, c1)
     print(f"Fit Number of 1-qubits gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
-    """
+    '''
 
 
 if __name__ == "__main__":
-    for n in [2, 3, 4, 5]:
-        generate_plots(n)
+    generate_plots(16)

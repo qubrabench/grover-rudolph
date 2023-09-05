@@ -172,7 +172,6 @@ def generate_sparse_vect(n_qubit, d):
         )
 
     sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype="complex")
-    sparse_v.sort_indices()
     nonzero_loc = sparse_v.nonzero()[1]
     values = sparse_v.data
     values = values / np.linalg.norm(values)
