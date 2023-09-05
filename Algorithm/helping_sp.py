@@ -185,4 +185,3 @@ def hamming_weight(n: int):
         h_weight += 1
         n &= n - 1
     return h_weight
-
