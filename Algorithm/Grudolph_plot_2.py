@@ -41,22 +41,17 @@ def generate_plots(n_qubit):
         perm_err2,
     ) = np.loadtxt(data_folder / f"Count_{n_qubit}.npy", unpack=True)
 
-
-
     plt.errorbar(d, opt_old0, yerr=opt_old_err0, color="r", label="Toffoli")
     plt.errorbar(d, opt_old1, yerr=opt_old_err1, color="g", label="CNOT")
-    plt.errorbar(
-        d, opt_old2, yerr=opt_old_err2, color="b", label="1-qbt gates"
-    )
-        plt.axhline(
+    plt.errorbar(d, opt_old2, yerr=opt_old_err2, color="b", label="1-qbt gates")
+    plt.axhline(
         y=1.0,
         color="k",
         linestyle="dashed",
     )
-    plt.xlabel('d')
-    plt.title('Number of gates with optimized GR / Number of gates with standard GR')
+    plt.xlabel("d")
+    plt.title("Number of gates with optimized GR / Number of gates with standard GR")
     plt.legend()
-    
 
     plt.figure()
 
@@ -68,12 +63,12 @@ def generate_plots(n_qubit):
         color="k",
         linestyle="dashed",
     )
-    plt.title('Number of gates with permutation GR / Number of gates with optimized GR')
+    plt.title("Number of gates with permutation GR / Number of gates with optimized GR")
     plt.legend()
-    plt.xlabel('d')
+    plt.xlabel("d")
 
     plt.show()
-    '''
+    """
     # FIT
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(d, c_t)
@@ -84,7 +79,7 @@ def generate_plots(n_qubit):
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(d, c1)
     print(f"Fit Number of 1-qubits gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
-    '''
+    """
 
 
 if __name__ == "__main__":
