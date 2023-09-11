@@ -63,6 +63,7 @@ def optimize_dict(dictionary):
     # Continue until everything that can be merged is merged
     while Merging_success and len(dictionary) > 1:
         for k1 in dictionary.keys():
+            Merging_success = False
             v1 = dictionary[k1]
             neighbours = neighbour_dict(k1)
 
@@ -72,7 +73,6 @@ def optimize_dict(dictionary):
 
                 v2 = dictionary[k2]
                 position = neighbours[k2]
-                Merging_success = False
 
                 # Consider only different items with same angle and phase
                 if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
@@ -92,7 +92,6 @@ def optimize_dict(dictionary):
             break
 
     return dictionary
-
 
 
 def reduced_density_matrix(rho, traced_dim):
