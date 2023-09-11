@@ -1,10 +1,11 @@
 import numpy as np
 from itertools import combinations
 import scipy as sp
+import scipy.sparse
 
 __all__ = [
     "ZERO",
-    "where_diff_one",
+    "neighbour_dict",
     "optimize_dict",
     "reduced_density_matrix",
     "generate_sparse_vect",
@@ -15,33 +16,36 @@ __all__ = [
 ZERO = 1e-8
 
 
-def where_diff_one(string_1, string_2) -> int | None:
+def neighbour_dict(string1):
     """
-    Checks if two string differ by ONLY one char that is not 'e', and it finds its position
-    It is checking if two controlled gates can be merged: if they differ in only one control
-    >>> assert where_diff_one('010', '011') == 2
-    >>> assert where_diff_one('011', '100') is None
-    >>> assert where_diff_one('e10', 'e10') is None
+    Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
+    Returns a dictionary with as keys the neighbours and as value the position in which they differ
+    >>> 10 -> {'11': 1, '00': 0}
+    >>> 1e -> {'0e': 0}
 
     Args:
-        string1, string2 = string made of '0', '1', 'e'
+        string1 = string made of '0', '1', 'e'
     Returns:
-        The position (int), or None if the conidtions are not met
+        dict = {string: int}
     """
+    neighbours = {}
+    list1 = list(string1)
+    for i in range(len(string1)):
+        list2 = list1.copy()
 
-    differ = 0  # difference count
-    for i in range(len(string_1)):
-        if string_1[i] != string_2[i]:
-            differ += 1
-            position = i
-            # if they differ with the char 'e' we can't merge
-            if string_1[position] == "e" or string_2[position] == "e":
-                return None
-        if differ > 1:
-            return None
-    if differ == 0:
-        return None
-    return position
+        if list1[i] == 'e':
+            continue
+
+        if list1[i] == '0':
+            list2[i] = '1'
+            neighbours[''.join(list2)] = i
+            continue
+
+        if list1[i] == '1':
+            list2[i] = '0'
+            neighbours[''.join(list2)] = i
+
+    return neighbours
 
 
 def optimize_dict(dictionary):
@@ -58,18 +62,20 @@ def optimize_dict(dictionary):
 
     # Continue until everything that can be merged is merged
     while Merging_success and len(dictionary) > 1:
-        for k1, k2 in combinations(dictionary.keys(), 2):
+        for k1 in dictionary.keys():
             v1 = dictionary[k1]
+            neighbours = neighbour_dict(k1)
+
+            for k2 in neighbours.keys():
+                if k2 not in dictionary:
+                    continue
+
             v2 = dictionary[k2]
+            position = neighbours[k2]
             Merging_success = False
 
             # Consider only different items with same angle and phase
             if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
-                continue
-
-            position = where_diff_one(k1, k2)
-
-            if position is None:
                 continue
 
             # Replace the different char with 'e' and remove the old items
@@ -149,7 +155,7 @@ def x_gate_merging(dictionary):
     return x_gates
 
 
-def generate_sparse_vect(n_qubit, d):
+def generate_sparse_vect(n_qubit, d, vec_type = 'complex'):
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
     as couples: position and value of the i-th non zero element
@@ -171,7 +177,8 @@ def generate_sparse_vect(n_qubit, d):
             )
         )
 
-    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype="complex")
+    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=vec_type)
+    sparse_v.sort_indices()
     nonzero_loc = sparse_v.nonzero()[1]
     values = sparse_v.data
     values = values / np.linalg.norm(values)
@@ -184,3 +191,4 @@ def hamming_weight(n: int):
         h_weight += 1
         n &= n - 1
     return h_weight
+
