@@ -70,25 +70,29 @@ def optimize_dict(dictionary):
                 if k2 not in dictionary:
                     continue
 
-            v2 = dictionary[k2]
-            position = neighbours[k2]
-            Merging_success = False
+                v2 = dictionary[k2]
+                position = neighbours[k2]
+                Merging_success = False
 
-            # Consider only different items with same angle and phase
-            if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
+                # Consider only different items with same angle and phase
+                if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
+                    continue
+
+                # Replace the different char with 'e' and remove the old items
+                k1_list = list(k1)
+                k1_list[position] = "e"
+
+                dictionary.pop(k1)
+                dictionary.pop(k2)
+                dictionary.update({"".join(k1_list): v1})
+                Merging_success = True
+                break
+            else:
                 continue
-
-            # Replace the different char with 'e' and remove the old items
-            k1_list = list(k1)
-            k1_list[position] = "e"
-
-            dictionary.pop(k1)
-            dictionary.pop(k2)
-            dictionary.update({"".join(k1_list): v1})
-            Merging_success = True
             break
 
     return dictionary
+
 
 
 def reduced_density_matrix(rho, traced_dim):
