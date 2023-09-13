@@ -4,7 +4,6 @@ The algorithm used is Grover Rudolph.
 """
 
 import numpy as np
-import scipy.sparse
 from helping_sp import ZERO, hamming_weight, x_gate_merging
 
 __all__ = [
@@ -231,13 +230,15 @@ def count_cycle(cycle, N_qubit):
     return np.array([N_toffoli, N_cnot, N_1_gate])
 
 
-def main(vector, nonzero_locations, N_qubit, optimization = True):
+def main(vector, nonzero_locations, N_qubit, optimization=True):
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise (ValueError("the nonzero_locations location vector must be ordered\n"))
 
     # standard Grover Rudolph
     d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity
-    angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d, optimization = optimization)
+    angle_phase_dict = phase_angle_dict(
+        vector, list(np.arange(0, len(vector))), d, optimization=optimization
+    )
     count = gate_count(angle_phase_dict)
 
     # Permutation algorithm

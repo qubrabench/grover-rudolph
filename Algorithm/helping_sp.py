@@ -1,5 +1,4 @@
 import numpy as np
-from itertools import combinations
 import scipy as sp
 import scipy.sparse
 
@@ -33,17 +32,17 @@ def neighbour_dict(string1):
     for i in range(len(string1)):
         list2 = list1.copy()
 
-        if list1[i] == 'e':
+        if list1[i] == "e":
             continue
 
-        if list1[i] == '0':
-            list2[i] = '1'
-            neighbours[''.join(list2)] = i
+        if list1[i] == "0":
+            list2[i] = "1"
+            neighbours["".join(list2)] = i
             continue
 
-        if list1[i] == '1':
-            list2[i] = '0'
-            neighbours[''.join(list2)] = i
+        if list1[i] == "1":
+            list2[i] = "0"
+            neighbours["".join(list2)] = i
 
     return neighbours
 
@@ -158,7 +157,7 @@ def x_gate_merging(dictionary):
     return x_gates
 
 
-def generate_sparse_vect(n_qubit, d, vec_type = 'complex'):
+def generate_sparse_vect(n_qubit, d, vec_type="complex"):
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
     as couples: position and value of the i-th non zero element
@@ -194,4 +193,3 @@ def hamming_weight(n: int):
         h_weight += 1
         n &= n - 1
     return h_weight
-
