@@ -19,8 +19,8 @@ def neighbour_dict(string1):
     """
     Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
     Returns a dictionary with as keys the neighbours and as value the position in which they differ
-    >>> 10 -> {'11': 1, '00': 0}
-    >>> 1e -> {'0e': 0}
+    - 10 -> {'11': 1, '00': 0}
+    - 1e -> {'0e': 0}
 
     Args:
         string1 = string made of '0', '1', 'e'
