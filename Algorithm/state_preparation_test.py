@@ -186,3 +186,20 @@ def test_circuit(n_qubit):
         assert (
             abs(rho_GR - rho_input) < ZERO
         ).all(), "test failed for {} with loc {}".format(vector, nonzero_loc)
+
+
+@pytest.mark.parametrize("n_qubit", [4, 5, 6])
+def test_optimization(n_qubit):
+    """
+    Checks if the optimization of the dictionary works as expected:
+    the state of all ones should be completely merged"""
+
+    vector = np.ones(2**n_qubit, dtype=float) / np.sqrt(2**n_qubit)
+    nonzero_loc = np.array([i for i in range(2**n_qubit)])
+    dictionary_list = phase_angle_dict(vector, nonzero_loc, n_qubit)
+
+    for i in range(0, len(dictionary_list)):
+        expected_key = {"e" * (i)}
+        assert (
+            expected_key == dictionary_list[i].keys()
+        ), "optimization is not working as expected"

@@ -4,7 +4,7 @@ The algorithm used is Grover Rudolph.
 """
 
 import numpy as np
-from helping_sp import ZERO, hamming_weight, x_gate_merging
+from helping_sp import ZERO, hamming_weight, x_gate_merging, optimize_dict
 
 __all__ = [
     "phase_angle_dict",
@@ -117,8 +117,8 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
         vector = new_vector
         nonzero_locations = new_nonzero_locations
 
-        # if optimization == True:
-        #     dictionary_opt = optimize_dict(dictionary)
+        if optimization == True:
+            dictionary_opt = optimize_dict(dictionary)
         list_dictionaries.insert(0, dictionary)
 
     return list_dictionaries
