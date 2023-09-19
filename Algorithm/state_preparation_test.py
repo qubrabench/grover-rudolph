@@ -1,8 +1,8 @@
 import pytest
-
 import numpy as np
 import numpy.typing as npt
 from typing import Any
+from functools import reduce
 
 from helping_sp import generate_sparse_vect, reduced_density_matrix, ZERO
 from state_preparation import phase_angle_dict, build_permutation
@@ -25,10 +25,13 @@ def circuit_GR(dict_list: list[dict[Any, Any]]) -> Any:
     e0 = np.array([float(1), float(0)])  # zero state
     e1 = np.array([float(0), float(1)])
 
-    P0 = np.outer(e0, e0)  # Projector
-    P1 = np.outer(e1, e1)
-
     Id = np.eye(2)
+
+    control_matrix: dict[str, np.ndarray] = {
+        "e": Id,
+        "0": np.outer(e0, e0),
+        "1": np.outer(e1, e1),
+    }
 
     for i in range(len(dict_list)):
         dictionary = dict_list[i]
@@ -36,7 +39,7 @@ def circuit_GR(dict_list: list[dict[Any, Any]]) -> Any:
         # Build the unitary for each dictonary
         for k, [theta, phase] in dictionary.items():
             if theta is None:
-                R = np.eye(2)
+                R = Id
             else:
                 R = np.array(
                     [
@@ -50,21 +53,13 @@ def circuit_GR(dict_list: list[dict[Any, Any]]) -> Any:
             else:
                 P_phase = np.array([[1.0, 0.0], [0.0, np.exp(1j * phase)]])
 
-            P = 1  # Projector P which controls R
-            for s in k:
-                if s == "e":
-                    P = np.kron(P, Id)
-
-                elif s == "0":
-                    P = np.kron(P, P0)
-
-                elif s == "1":
-                    P = np.kron(P, P1)
+            # tensor product of all the 2x2 control matrices
+            P = reduce(np.kron, [control_matrix[s] for s in k], np.eye(1))
 
             U = np.kron(P, P_phase @ R) + np.kron(np.eye(2**i) - P, Id)
 
-            for n in range(len(dict_list) - i - 1):
-                U = np.kron(U, Id)
+            extra = len(dict_list) - i - 1
+            U = np.kron(U, np.eye(2**extra))
 
             psi = U @ psi
 
