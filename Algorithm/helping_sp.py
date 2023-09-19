@@ -12,13 +12,27 @@ __all__ = [
     "generate_sparse_vect",
     "hamming_weight",
     "x_gate_merging",
+    "RotationGate",
+    "ControlledRotationGateMap",
 ]
 
-# global zero precision
+# Some useful type aliases:
+RotationGate = tuple[float, float]
+"""(phase, angle) pair describing a rotation gate"""
+
+Controls = str
+"""a sequence of control bits
+each bit is one of "0", "1" or "e"
+"""
+
+ControlledRotationGateMap = dict[Controls, RotationGate]
+"""keys are control bits, target is a rotation gate description"""
+
 ZERO = 1e-8
+"""global zero precision"""
 
 
-def neighbour_dict(string1: str) -> dict[str, int]:
+def neighbour_dict(string1: Controls) -> dict[Controls, int]:
     """
     Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
     Returns a dictionary with as keys the neighbours and as value the position in which they differ
@@ -43,7 +57,7 @@ def neighbour_dict(string1: str) -> dict[str, int]:
     return neighbours
 
 
-def optimize_dict(dictionary: dict[str, float]) -> dict[str, float]:
+def optimize_dict(dictionary: ControlledRotationGateMap) -> ControlledRotationGateMap:
     """
     Optimize the dictionary by merging some gates in one:
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
@@ -114,7 +128,7 @@ def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
     return reduced_rho
 
 
-def x_gate_merging(dictionary: dict[str, Any]) -> int:
+def x_gate_merging(dictionary: ControlledRotationGateMap) -> int:
     """
     Counts the number of x-gates that can be merged given an optimized dictionary.
 

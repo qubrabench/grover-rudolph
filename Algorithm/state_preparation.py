@@ -2,10 +2,14 @@
 **state_preparation** is a collection of functions to estimate the number of gates needed in the state preparation (in terms of Toffoli, 2-qbits gates and 1-qbit gates) and to build the circuit that prepares the state.
 The algorithm used is Grover Rudolph.
 """
-from typing import Any
-
 import numpy as np
-from helping_sp import ZERO, hamming_weight, x_gate_merging, optimize_dict
+from helping_sp import (
+    ZERO,
+    hamming_weight,
+    x_gate_merging,
+    optimize_dict,
+    ControlledRotationGateMap,
+)
 
 __all__ = [
     "phase_angle_dict",
@@ -21,7 +25,7 @@ def phase_angle_dict(
     nonzero_locations: list[int],
     n_qubit: int,
     optimization: bool = True,
-) -> list[dict]:
+) -> list[ControlledRotationGateMap]:
     """
     Generate a list of dictonaries for the angles given the amplitude vector
     Each dictonary is of the form:
@@ -49,7 +53,7 @@ def phase_angle_dict(
         new_vector = []
 
         length_dict = 2 ** (n_qubit - qbit - 1)
-        dictionary: dict[str, int] = {}
+        dictionary: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
         i = 0
 
@@ -69,12 +73,12 @@ def phase_angle_dict(
 
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                     if length_dict == 1:
-                        dictionary = {"": [angle, phase]}
+                        dictionary = {"": (angle, phase)}
                     else:
                         key = str(bin(int(np.floor(loc / 2)))[2:]).zfill(
                             n_qubit - qbit - 1
                         )
-                        dictionary[key] = [angle, phase]
+                        dictionary[key] = (angle, phase)
 
                 i += 1
                 continue
@@ -113,12 +117,12 @@ def phase_angle_dict(
 
             if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                 if length_dict == 1:
-                    dictionary = {"": [angle, phase]}
+                    dictionary = {"": (angle, phase)}
                 else:
                     key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
                         n_qubit - qbit - 1
                     )
-                    dictionary[key] = [angle, phase]
+                    dictionary[key] = (angle, phase)
 
         vector = new_vector
         nonzero_locations = new_nonzero_locations
@@ -132,7 +136,7 @@ def phase_angle_dict(
     return list_dictionaries
 
 
-def gate_count(dict_list: list[dict[str, Any]]) -> list[int]:
+def gate_count(dict_list: list[ControlledRotationGateMap]) -> list[int]:
     """
     Counts how many gates you need to build  the circuit in terms of elemental ones (single rotation gates, one-control-one-target
     gates on the |1⟩ state, refered as 2 qubits gates, and Toffoli gates)
