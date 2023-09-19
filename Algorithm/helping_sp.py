@@ -31,21 +31,13 @@ def neighbour_dict(string1: str) -> dict[str, int]:
         dict = {string: int}
     """
     neighbours = {}
-    list1 = list(string1)
-    for i in range(len(string1)):
-        list2 = list1.copy()
-
-        if list1[i] == "e":
+    for i, c in enumerate(string1):
+        if c == "e":
             continue
 
-        if list1[i] == "0":
-            list2[i] = "1"
-            neighbours["".join(list2)] = i
-            continue
-
-        if list1[i] == "1":
-            list2[i] = "0"
-            neighbours["".join(list2)] = i
+        c_opposite = "1" if c == "0" else "0"
+        key = string1[:i] + c_opposite + string1[i + 1 :]
+        neighbours[key] = i
 
     return neighbours
 
@@ -58,41 +50,38 @@ def optimize_dict(dictionary: dict[str, float]) -> dict[str, float]:
     Args:
         dictionary: {key = (string of '0', '1') : value = float}
         TODO(type) Is the `value` a float or list[float]? (was it not [angle, phase]?)
+        TODO(name) more descriptive name for `dictionary`
     Returns:
         dictionary = {key = (string of '0', '1', 'e') : value = float}
     """
-    Merging_success = True  # Initialization value
+    merging_success = True
 
     # Continue until everything that can be merged is merged
-    while Merging_success and len(dictionary) > 1:
-        for k1 in dictionary.keys():
-            Merging_success = False
-            v1 = dictionary[k1]
+    while merging_success and len(dictionary) > 1:
+        merging_success = False
+
+        for k1, v1 in dictionary.items():
             neighbours = neighbour_dict(k1)
 
-            for k2 in neighbours.keys():
+            for k2, position in neighbours.items():
                 if k2 not in dictionary:
                     continue
 
                 v2 = dictionary[k2]
-                position = neighbours[k2]
 
                 # Consider only different items with same angle and phase
                 if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
                     continue
 
                 # Replace the different char with 'e' and remove the old items
-                k1_list = list(k1)
-                k1_list[position] = "e"
-
                 dictionary.pop(k1)
                 dictionary.pop(k2)
-                dictionary.update({"".join(k1_list): v1})
-                Merging_success = True
+                dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
+                merging_success = True
                 break
-            else:
-                continue
-            break
+
+            if merging_success:
+                break
 
     return dictionary
 
@@ -131,37 +120,15 @@ def x_gate_merging(dictionary: dict[str, Any]) -> int:
     Returns:
         The count of x-gates that can be merged.
     """
-
-    # Extract the keys from the dictionary
     keys = list(dictionary.keys())
-    # Initialize the x-gate count
-    x_gates = 0
 
     # Iterate through consecutive pairs of keys
-    for i in range(len(keys) - 1):
-        key1 = keys[i]
-        key2 = keys[i + 1]
-
-        # Flag to indicate if x-gate merge occurs
-        is_equal = False
-
-        # Iterate through characters at each position
-        for position in range(min(len(key1), len(key2))):
-            char1 = key1[position]
-            char2 = key2[position]
-
-            # Check if x-gate merging condition is met: if two consecutive bit strings have a '0' at the same position
-            if char1 == "0" and char2 == "0":
-                is_equal = True
-                break
-            else:
-                continue
-
-        # Increment the counter if the condition is met
-        if is_equal:
-            x_gates += 1
-
-    return x_gates
+    # Check if x-gate merging condition is met: if two consecutive bit strings have a '0' at the same position
+    # Increment the counter if the condition is met
+    return [
+        any(c1 == "0" and c2 == "0" for c1, c2 in zip(key1, key2))
+        for key1, key2 in zip(keys, keys[1:])
+    ].count(True)
 
 
 def generate_sparse_vect(

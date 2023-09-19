@@ -123,8 +123,10 @@ def phase_angle_dict(
         vector = new_vector
         nonzero_locations = new_nonzero_locations
 
-        if optimization == True:
+        if optimization:
+            # TODO(bug) unused variable `dictionary_opt`
             dictionary_opt = optimize_dict(dictionary)
+
         list_dictionaries.insert(0, dictionary)
 
     return list_dictionaries
@@ -147,16 +149,9 @@ def gate_count(dict_list: list[dict[str, Any]]) -> list[int]:
 
     for dictionary in dict_list:
         # Build the unitary for each dictonary
-        for k in dictionary.keys():
-            count0 = 0  # count 0 gate
-            count1 = 0  # count 1 gate
-
-            for s in k:
-                if s == "0":
-                    count0 += 1
-
-                elif s == "1":
-                    count1 += 1
+        for k in dictionary:
+            count0 = k.count("0")
+            count1 = k.count("1")
 
             if count0 + count1 == 0:
                 N_toffoli += 0
@@ -187,19 +182,19 @@ def build_permutation(nonzero_locations: list[int]) -> list[list[int]]:
 
     """
     d = len(nonzero_locations)  # Sparsity
-    S = [1 for i in range(d)]
+    seen = [False for i in range(d)]
     cycles = []  # list to store the permutation cycles
 
     # Build the cycles
     for i in range(d):
         j = nonzero_locations[i]
-        c = [i, j]
 
-        if (S[i] == 0) or (nonzero_locations[i] == i):
+        if seen[i] or j == i:
             continue
 
+        c = [i, j]
         while j < d:
-            S[j] = 0
+            seen[j] = True
             j = nonzero_locations[j]
             c.append(j)
 
@@ -219,6 +214,8 @@ def count_cycle(cycle: list[int], N_qubit: int) -> list[int]:
         List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
         TODO(type) fix
     """
+    cycle = cycle.copy()
+
     length = len(cycle)
     cycle.append(cycle[0])
 

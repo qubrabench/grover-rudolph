@@ -207,7 +207,7 @@ def test_optimization(n_qubit: int):
     dictionary_list = phase_angle_dict(vector, nonzero_loc, n_qubit)
 
     for i in range(0, len(dictionary_list)):
-        expected_key = {"e" * (i)}
+        expected_keys = {"e" * i}
         assert (
-            expected_key == dictionary_list[i].keys()
+            expected_keys == dictionary_list[i].keys()
         ), "optimization is not working as expected"
