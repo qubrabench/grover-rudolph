@@ -59,6 +59,7 @@ def generate_plots(n_qubit, *, show_plots=True):
     plt.figure()
 
     plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="r", label="Toffoli")
+    # TODO(bug) should these below be 1 and 2?
     plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="g", label="CNOT")
     plt.errorbar(d, perm_opt0, yerr=perm_opt_err0, color="b", label="1-qbt gates")
     plt.axhline(
