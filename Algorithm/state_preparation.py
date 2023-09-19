@@ -2,6 +2,7 @@
 **state_preparation** is a collection of functions to estimate the number of gates needed in the state preparation (in terms of Toffoli, 2-qbits gates and 1-qbit gates) and to build the circuit that prepares the state.
 The algorithm used is Grover Rudolph.
 """
+from typing import Any
 
 import numpy as np
 from helping_sp import ZERO, hamming_weight, x_gate_merging, optimize_dict
@@ -15,7 +16,12 @@ __all__ = [
 ]
 
 
-def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
+def phase_angle_dict(
+    vector: list[np.complexfloating],
+    nonzero_locations: list[int],
+    n_qubit: int,
+    optimization: bool = True,
+) -> list[dict]:
     """
     Generate a list of dictonaries for the angles given the amplitude vector
     Each dictonary is of the form:
@@ -36,14 +42,14 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
     if abs(np.linalg.norm(vector) - 1.0) > ZERO:
         raise ValueError("vector should be normalized")
 
-    list_dictionaries = []
+    list_dictionaries: list[dict] = []
 
     for qbit in range(n_qubit):
         new_nonzero_locations = []
         new_vector = []
 
         length_dict = 2 ** (n_qubit - qbit - 1)
-        dictionary = {}
+        dictionary: dict[str, int] = {}
         sparsity = len(nonzero_locations)
         i = 0
 
@@ -124,15 +130,16 @@ def phase_angle_dict(vector, nonzero_locations, n_qubit, optimization=True):
     return list_dictionaries
 
 
-def gate_count(dict_list):
+def gate_count(dict_list: list[dict[str, Any]]) -> list[int]:
     """
     Counts how many gates you need to build  the circuit in terms of elemental ones (single rotation gates, one-control-one-target
     gates on the |1⟩ state, refered as 2 qubits gates, and Toffoli gates)
 
     Args:
-                    dict_list = the list of dictionaries
-    Rerurns:
-                    list of int = [number of Toffoli gates, number of 2 qubits gates, number of single rotation gate]
+        dict_list = the list of dictionaries
+    Returns:
+        list of int = [number of Toffoli gates, number of 2 qubits gates, number of single rotation gate]
+        TODO(type) fix
     """
     N_toffoli = 0
     N_cnot = 0
@@ -167,7 +174,7 @@ def gate_count(dict_list):
     return count
 
 
-def build_permutation(nonzero_locations):
+def build_permutation(nonzero_locations: list[int]) -> list[list[int]]:
     """
     Given a classical permutation, return its cyclic decomposition
     Construct a permutation unitary that maps |i⟩ → |x_i⟩
@@ -202,7 +209,7 @@ def build_permutation(nonzero_locations):
     return cycles
 
 
-def count_cycle(cycle, N_qubit):
+def count_cycle(cycle: list[int], N_qubit: int) -> list[int]:
     """
     Counts the number if universal gates in terms of Toffoli, Cnots and 1 qubit gates
     Args:
@@ -210,6 +217,7 @@ def count_cycle(cycle, N_qubit):
         N_qubit = int
     Returns:
         List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
+        TODO(type) fix
     """
     length = len(cycle)
     cycle.append(cycle[0])
@@ -230,9 +238,26 @@ def count_cycle(cycle, N_qubit):
     return np.array([N_toffoli, N_cnot, N_1_gate])
 
 
-def main(vector, nonzero_locations, N_qubit, optimization=True):
+def main(
+    vector,
+    nonzero_locations,
+    N_qubit: int,
+    optimization: bool = True,
+) -> list[int]:
+    """
+    TODO(docstring)
+
+    Args:
+        vector:
+        nonzero_locations:
+        N_qubit:
+        optimization:
+
+    Returns:
+        TODO(type)
+    """
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
-        raise (ValueError("the nonzero_locations location vector must be ordered\n"))
+        raise ValueError("the nonzero_locations location vector must be ordered")
 
     # standard Grover Rudolph
     d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity

@@ -1,10 +1,14 @@
 import pytest
+
 import numpy as np
+import numpy.typing as npt
+from typing import Any
+
 from helping_sp import generate_sparse_vect, reduced_density_matrix, ZERO
 from state_preparation import phase_angle_dict, build_permutation
 
 
-def circuit_GR(dict_list):
+def circuit_GR(dict_list: list[dict[Any, Any]]) -> Any:
     """
 
     The same procedure is applied to the phases, and at the end the two dictionaries are merged together, taking into account the commutation rules.
@@ -67,7 +71,7 @@ def circuit_GR(dict_list):
     return psi
 
 
-def cycle_circuit(cycle, state):
+def cycle_circuit(cycle: Any, state: Any) -> Any:
     """
     Given a cycle, it return the unitary that permutes the vector of the computational basis
     circuit building the permutation
@@ -127,7 +131,11 @@ def cycle_circuit(cycle, state):
     return state
 
 
-def main_circuit(vector, nonzero_locations, N_qubit):
+def main_circuit(
+    vector: npt.NDArray[np.complexfloating],
+    nonzero_locations: npt.NDArray[np.integer],
+    N_qubit: int,
+) -> npt.NDArray[np.complexfloating]:
     """
     Implement the permutation GR:
     given a sparse state given as input as two vectors, one indicating the value of the non zero components and the other their positions,
@@ -169,7 +177,7 @@ def main_circuit(vector, nonzero_locations, N_qubit):
 
 
 @pytest.mark.parametrize("n_qubit", [4, 5, 6])
-def test_circuit(n_qubit):
+def test_circuit(n_qubit: int):
     N = 2**n_qubit
 
     for d in range(1, 2**n_qubit):
@@ -189,7 +197,7 @@ def test_circuit(n_qubit):
 
 
 @pytest.mark.parametrize("n_qubit", [4, 5, 6])
-def test_optimization(n_qubit):
+def test_optimization(n_qubit: int):
     """
     Checks if the optimization of the dictionary works as expected:
     the state of all ones should be completely merged"""

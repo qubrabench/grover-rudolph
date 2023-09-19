@@ -7,7 +7,9 @@ data_folder = Path(__file__).parent.parent / "data"  # ../data
 data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
 
 
-def generate_data(n_qubit, repeat=1, percentage=100, step=1):
+def generate_data(
+    n_qubit: int, repeat: int = 1, percentage: float = 100, step: int = 1
+):
     """
     Create a txt file with the data: sparsity, gate count
     Creates 2^N * repeat data

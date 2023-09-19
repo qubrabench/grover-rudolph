@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import scipy as sp
 import scipy.sparse
@@ -9,13 +11,14 @@ __all__ = [
     "reduced_density_matrix",
     "generate_sparse_vect",
     "hamming_weight",
+    "x_gate_merging",
 ]
 
 # global zero precision
 ZERO = 1e-8
 
 
-def neighbour_dict(string1):
+def neighbour_dict(string1: str) -> dict[str, int]:
     """
     Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
     Returns a dictionary with as keys the neighbours and as value the position in which they differ
@@ -23,7 +26,7 @@ def neighbour_dict(string1):
     - 1e -> {'0e': 0}
 
     Args:
-        string1 = string made of '0', '1', 'e'
+        string1: string made of '0', '1', 'e'
     Returns:
         dict = {string: int}
     """
@@ -47,13 +50,14 @@ def neighbour_dict(string1):
     return neighbours
 
 
-def optimize_dict(dictionary):
+def optimize_dict(dictionary: dict[str, float]) -> dict[str, float]:
     """
     Optimize the dictionary by merging some gates in one:
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
     >> {'11':3.14, ; '10':3.14} becomes {'1e':3.14} where 'e' means no control (identity)
     Args:
-        dictionary = {key = (string of '0', '1') : value = float}
+        dictionary: {key = (string of '0', '1') : value = float}
+        TODO(type) Is the `value` a float or list[float]? (was it not [angle, phase]?)
     Returns:
         dictionary = {key = (string of '0', '1', 'e') : value = float}
     """
@@ -93,14 +97,17 @@ def optimize_dict(dictionary):
     return dictionary
 
 
-def reduced_density_matrix(rho, traced_dim):
+def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
     """
     Computes the partial trace on a second subspace of dimension traced_dimension
 
     Args:
-        Complex array, int
+        rho: Complex array TODO(type) 1D or 2D?
+        traced_dim: int
+
     Returns:
         Complex matrix
+        TODO(type) 2D?
     """
 
     total_dim = len(rho[0])
@@ -114,15 +121,15 @@ def reduced_density_matrix(rho, traced_dim):
     return reduced_rho
 
 
-def x_gate_merging(dictionary):
+def x_gate_merging(dictionary: dict[str, Any]) -> int:
     """
     Counts the number of x-gates that can be merged given an optimized dictionary.
 
     Parameters:
-        dictionary (dict): A dictionary containing quantum gates represented as keys.
+        dictionary: A dictionary containing quantum gates represented as keys.
 
     Returns:
-        int (count): The count of x-gates that can be merged.
+        The count of x-gates that can be merged.
     """
 
     # Extract the keys from the dictionary
@@ -157,26 +164,26 @@ def x_gate_merging(dictionary):
     return x_gates
 
 
-def generate_sparse_vect(n_qubit, d, vec_type="complex"):
+def generate_sparse_vect(
+    n_qubit: int, d: int, vec_type="complex"
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
     as couples: position and value of the i-th non zero element
     The sign of the first entry  is  always real positive to fix the overall phase
 
-        Args:
-            Number of qubits N, sparsity d
+    Args:
+        Number of qubits N, sparsity d
 
-        Returns:
-            vector = complex array of length d, with the values of the amplitudes
-            nonzero_locations = int array of length d (ordered) with the position of the non-zero element
+    Returns:
+        vector = complex array of length d, with the values of the amplitudes
+        nonzero_locations = int array of length d (ordered) with the position of the non-zero element
     """
     N = 2**n_qubit
 
     if d > N:
-        raise (
-            ValueError(
-                "Sparsity must be less or equal than the dimension of the vector\n"
-            )
+        raise ValueError(
+            "Sparsity must be less or equal than the dimension of the vector\n"
         )
 
     sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=vec_type)
@@ -187,7 +194,7 @@ def generate_sparse_vect(n_qubit, d, vec_type="complex"):
     return values, nonzero_loc
 
 
-def hamming_weight(n: int):
+def hamming_weight(n: int) -> int:
     h_weight = 0
     while n:
         h_weight += 1

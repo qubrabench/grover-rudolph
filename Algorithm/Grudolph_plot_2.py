@@ -7,6 +7,9 @@ data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not alrea
 
 
 def generate_plots(n_qubit, *, show_plots=True):
+    # TODO organize data better for easier debugging.
+    # - could use JSON, with dictionary keys to keep track of the variables
+    # - or a python pickle (disadvantage: not human readable)
     (
         d,
         opt_old0,
