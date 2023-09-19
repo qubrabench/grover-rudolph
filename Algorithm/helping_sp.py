@@ -22,8 +22,9 @@ def neighbour_dict(string1: str) -> dict[str, int]:
     """
     Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
     Returns a dictionary with as keys the neighbours and as value the position in which they differ
-    - 10 -> {'11': 1, '00': 0}
-    - 1e -> {'0e': 0}
+
+    >>> assert neighbour_dict("10") == {"00": 0, "11": 1}
+    >>> assert neighbour_dict("1e") == {'0e': 0}
 
     Args:
         string1: string made of '0', '1', 'e'
@@ -47,6 +48,9 @@ def optimize_dict(dictionary: dict[str, float]) -> dict[str, float]:
     Optimize the dictionary by merging some gates in one:
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
     >> {'11':3.14, ; '10':3.14} becomes {'1e':3.14} where 'e' means no control (identity)
+
+    >>> assert optimize_dict({"11": 3.14, "10": 3.14}) == {"1e": 3.14}
+
     Args:
         dictionary: {key = (string of '0', '1') : value = float}
         TODO(type) Is the `value` a float or list[float]? (was it not [angle, phase]?)
@@ -150,7 +154,7 @@ def generate_sparse_vect(
 
     if d > N:
         raise ValueError(
-            "Sparsity must be less or equal than the dimension of the vector\n"
+            "Sparsity must be less or equal than the dimension of the vector"
         )
 
     sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=vec_type)

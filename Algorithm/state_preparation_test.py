@@ -150,7 +150,7 @@ def main_circuit(
     e0 = np.array([float(1), float(0)])  # zero state
 
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
-        raise (ValueError("the nonzero_locations location vector must be ordered\n"))
+        raise ValueError("the nonzero_locations location vector must be ordered")
 
     # add zeros to the vector until it has as length a power of 2
 
