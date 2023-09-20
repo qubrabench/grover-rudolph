@@ -142,10 +142,10 @@ def gate_count(dict_list: list[ControlledRotationGateMap]) -> list[int]:
     gates on the |1⟩ state, refered as 2 qubits gates, and Toffoli gates)
 
     Args:
-        dict_list = the list of dictionaries
+        dict_list = the list of dictionaries of the form dict[str] = [float,float], where str is made of '0','1','e'
     Returns:
         list of int = [number of Toffoli gates, number of 2 qubits gates, number of single rotation gate]
-        TODO(type) fix
+        TODO(type) fix, is it fixed?
     """
     N_toffoli = 0
     N_cnot = 0
@@ -246,16 +246,16 @@ def main(
     optimization: bool = True,
 ) -> list[int]:
     """
-    TODO(docstring)
+    Estimation of the number of gates needed to prepare a sparse state using permutation Grover Rudolph
 
     Args:
-        vector:
-        nonzero_locations:
-        N_qubit:
-        optimization:
+        vector: float 1D array of the non_zero components of the amplitude vector
+        nonzero_locations: int 1D array (ordered) of the positions of the non zero components
+        N_qubit: int
+        optimization: choose if you want to merge the gate (set to True by default)
 
     Returns:
-        TODO(type)
+        List of int = [Number of Toffoli, Number of cnots, Number of 1 qubit gates]
     """
     if not (np.sort(nonzero_locations) == nonzero_locations).all():
         raise ValueError("the nonzero_locations location vector must be ordered")

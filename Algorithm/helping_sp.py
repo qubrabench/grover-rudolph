@@ -57,51 +57,51 @@ def neighbour_dict(string1: Controls) -> dict[Controls, int]:
     return neighbours
 
 
-def optimize_dict(dictionary: ControlledRotationGateMap) -> ControlledRotationGateMap:
+def optimize_dict(
+    gate_dictionary: ControlledRotationGateMap,
+) -> ControlledRotationGateMap:
     """
     Optimize the dictionary by merging some gates in one:
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
-    >> {'11':3.14, ; '10':3.14} becomes {'1e':3.14} where 'e' means no control (identity)
+    >> {'11':[3.14,0] ; '10':[3.14,0]} becomes {'1e':[3.14,0]} where 'e' means no control (identity)
 
-    >>> assert optimize_dict({"11": 3.14, "10": 3.14}) == {"1e": 3.14}
+    >>> assert optimize_dict({"11": [3.14,0] "10": [3.14,0]}) == {"1e": [3.14,0]}
 
     Args:
-        dictionary: {key = (string of '0', '1') : value = float}
-        TODO(type) Is the `value` a float or list[float]? (was it not [angle, phase]?)
-        TODO(name) more descriptive name for `dictionary`
+        dictionary: {key = (string of '0', '1') : value = [float,float]}
     Returns:
         dictionary = {key = (string of '0', '1', 'e') : value = float}
     """
     merging_success = True
 
     # Continue until everything that can be merged is merged
-    while merging_success and len(dictionary) > 1:
+    while merging_success and len(gate_dictionary) > 1:
         merging_success = False
 
-        for k1, v1 in dictionary.items():
+        for k1, v1 in gate_dictionary.items():
             neighbours = neighbour_dict(k1)
 
             for k2, position in neighbours.items():
-                if k2 not in dictionary:
+                if k2 not in gate_dictionary:
                     continue
 
-                v2 = dictionary[k2]
+                v2 = gate_dictionary[k2]
 
                 # Consider only different items with same angle and phase
                 if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
                     continue
 
                 # Replace the different char with 'e' and remove the old items
-                dictionary.pop(k1)
-                dictionary.pop(k2)
-                dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
+                gate_dictionary.pop(k1)
+                gate_dictionary.pop(k2)
+                gate_dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
                 merging_success = True
                 break
 
             if merging_success:
                 break
 
-    return dictionary
+    return gate_dictionary
 
 
 def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
@@ -109,12 +109,11 @@ def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
     Computes the partial trace on a second subspace of dimension traced_dimension
 
     Args:
-        rho: Complex array TODO(type) 1D or 2D?
+        rho: Complex 2D array
         traced_dim: int
 
     Returns:
-        Complex matrix
-        TODO(type) 2D?
+        Complex 2D array
     """
 
     total_dim = len(rho[0])
