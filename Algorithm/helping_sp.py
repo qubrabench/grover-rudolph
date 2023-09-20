@@ -153,10 +153,7 @@ def x_gate_merging(dictionary: ControlledRotationGateMap) -> int:
     # Iterate through consecutive pairs of keys
     # Check if x-gate merging condition is met: if two consecutive bit strings have a '0' at the same position
     # Increment the counter if the condition is met
-    return [
-        any(c1 == "0" and c2 == "0" for c1, c2 in zip(key1, key2))
-        for key1, key2 in zip(keys, keys[1:])
-    ].count(True)
+    return [("0", "0") in zip(k1, k2) for k1, k2 in zip(keys, keys[1:])].count(True)
 
 
 def generate_sparse_vect(
