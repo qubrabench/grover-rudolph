@@ -128,8 +128,7 @@ def phase_angle_dict(
         nonzero_locations = new_nonzero_locations
 
         if optimization:
-            # TODO(bug) unused variable `dictionary_opt`
-            dictionary_opt = optimize_dict(dictionary)
+            dictionary = optimize_dict(dictionary)
 
         list_dictionaries.insert(0, dictionary)
 
