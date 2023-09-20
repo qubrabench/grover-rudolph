@@ -68,30 +68,29 @@ def optimize_dict(
     >>> assert optimize_dict({"11": (3.14, 0), "10": (3.14, 0)}) == {"1e": (3.14, 0)}
 
     Args:
-        dictionary: {key = (string of '0', '1') : value = [float,float]}
+        gate_dictionary: collection of controlled gates to be applied
     Returns:
-        dictionary = {key = (string of '0', '1', 'e') : value = float}
+        optimized collection of controlled gates
     """
     merging_success = True
 
     # Continue until everything that can be merged is merged
     while merging_success and len(gate_dictionary) > 1:
-        merging_success = meargeable(gate_dictionary)
+        merging_success = run_one_merge_step(gate_dictionary)
 
     return gate_dictionary
 
 
-def meargeable(
+def run_one_merge_step(
     gate_dictionary: ControlledRotationGateMap,
 ) -> bool:
     """
-    Returns True if a merging happens, False otherwise.
-    It modifies the dictionary by doing the merging.
+    Run a single merging step, modifying the input dictionary.
 
     Args:
-        dictionary: {key = (string of '0', '1') : value = [float,float]}
+        gate_dictionary: collection of controlled gates to be applied
     Returns:
-        bool
+        True if some merge happened
     """
 
     for k1, v1 in gate_dictionary.items():
