@@ -65,7 +65,7 @@ def optimize_dict(
     if the two values are the same and they only differ in one control (one char of the key  is 0 and the other is 1) they can be merged
     >> {'11':[3.14,0] ; '10':[3.14,0]} becomes {'1e':[3.14,0]} where 'e' means no control (identity)
 
-    >>> assert optimize_dict({"11": [3.14,0], "10": [3.14,0]}) == {"1e": [3.14,0]}
+    >>> assert optimize_dict({"11": (3.14, 0), "10": (3.14, 0)}) == {"1e": (3.14, 0)}
 
     Args:
         dictionary: {key = (string of '0', '1') : value = [float,float]}
