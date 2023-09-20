@@ -4,11 +4,16 @@ import numpy.typing as npt
 from typing import Any
 from functools import reduce
 
-from helping_sp import generate_sparse_vect, reduced_density_matrix, ZERO
+from helping_sp import (
+    generate_sparse_vect,
+    reduced_density_matrix,
+    ZERO,
+    ControlledRotationGateMap,
+)
 from state_preparation import phase_angle_dict, build_permutation
 
 
-def circuit_GR(dict_list: list[dict[Any, Any]]) -> Any:
+def circuit_GR(dict_list: list[ControlledRotationGateMap]) -> Any:
     """
 
     The same procedure is applied to the phases, and at the end the two dictionaries are merged together, taking into account the commutation rules.
