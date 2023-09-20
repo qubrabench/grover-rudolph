@@ -8,3 +8,4 @@ mypy~=1.2
 pandas-stubs~=2.0
 scipy~=1.11.1
 cirq~=1.2.0
+pandas~=2.0

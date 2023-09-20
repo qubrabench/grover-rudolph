@@ -35,11 +35,9 @@ def circuit_GR(dict_list: list[ControlledRotationGateMap]) -> Any:
         "1": np.outer(e1, e1),
     }
 
-    for i in range(len(dict_list)):
-        dictionary = dict_list[i]
-
+    for i, gates in enumerate(dict_list):
         # Build the unitary for each dictonary
-        for k, [theta, phase] in dictionary.items():
+        for k, [theta, phase] in gates.items():
             if theta is None:
                 R = Id
             else:

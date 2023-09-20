@@ -1,10 +1,20 @@
 from pathlib import Path
 import numpy as np
+import pandas as pd
+
 from helping_sp import generate_sparse_vect, ZERO, optimize_dict
 from state_preparation import phase_angle_dict, gate_count, main
 
 data_folder = Path(__file__).parent.parent / "data"  # ../data
 data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
+
+
+class Stats:
+    def __init__(self):
+        self.data = []
+
+    def add_row(self, name: str, gate_counts: np.ndarray):
+        self.data.append([name] + list(gate_counts))
 
 
 def generate_data(
@@ -14,70 +24,67 @@ def generate_data(
     Create a txt file with the data: sparsity, gate count
     Creates 2^N * repeat data
     Notice that each time you run the program more data are added to the file referring to n_qubit, if you want to avoid this open the file with 'w' instead of 'a'
+
+    Args:
+        n_qubit: number of qubits
+        repeat: TODO add description
+        percentage: TODO add description
+        step: TODO add description
     """
 
     N = 2**n_qubit
 
-    with open(data_folder / f"Count_{n_qubit}.npy", "w") as f:
-        for d in range(1, int(N * percentage / 100), step):
-            opt_old = np.empty((repeat, 3), dtype=float)
-            perm_opt = np.empty((repeat, 3), dtype=float)
-            oldcount = np.empty((repeat, 3), dtype=float)
-            optcount = np.empty((repeat, 3), dtype=float)
-            perm = np.empty((repeat, 3), dtype=float)
+    data: list[pd.DataFrame] = []
+    for d in range(1, int(N * percentage / 100), step):
+        stats = Stats()
+        for i in range(repeat):
+            # Permutation GR
+            vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
 
-            for i in range(repeat):
-                # Permutation GR
-                vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
-                perm[i][:] = main(vector, nonzero_loc, n_qubit)
+            perm = main(vector, nonzero_loc, n_qubit)
+            stats.add_row("perm", perm)
 
-                # compare with ver 1.0 GR
-                angle_phase_dict = phase_angle_dict(
-                    vector, nonzero_loc, n_qubit, optimization=False
-                )
-                oldcount[i][:] = gate_count(angle_phase_dict)
-
-                # Compare with optimized GR
-                for index, dictionary in enumerate(angle_phase_dict):
-                    angle_phase_dict[index] = optimize_dict(dictionary)
-                optcount[i][:] = gate_count(angle_phase_dict)
-
-                # update values
-                opt_old[i][:] = [
-                    (optcount[i][j] / oldcount[i][j]) if oldcount[i][j] > ZERO else 0.0
-                    for j in range(3)
-                ]
-
-                perm_opt[i][:] = [
-                    (perm[i][j] / optcount[i][j]) if optcount[i][j] > ZERO else 0.0
-                    for j in range(3)
-                ]
-
-            # Write in a file mean and standard deviation
-            data = np.concatenate(
-                [
-                    d,
-                    np.mean(opt_old, axis=0),
-                    np.std(opt_old, axis=0),
-                    np.mean(perm_opt, axis=0),
-                    np.std(perm_opt, axis=0),
-                    np.mean(oldcount, axis=0),
-                    np.std(oldcount, axis=0),
-                    np.mean(optcount, axis=0),
-                    np.std(optcount, axis=0),
-                    np.mean(perm, axis=0),
-                    np.std(perm, axis=0),
-                ],
-                axis=None,
+            # compare with ver 1.0 GR
+            angle_phase_dict = phase_angle_dict(
+                vector, nonzero_loc, n_qubit, optimization=False
             )
-            np.savetxt(f, data.reshape(1, -1), delimiter="\t")
-            print(
-                int(d / step),
-                "/",
-                int(N * percentage / (100 * step)),
-                "---------------------------------------------------------------------",
-            )  # check status
+            oldcount = gate_count(angle_phase_dict)
+            stats.add_row("oldcount", oldcount)
+
+            # Compare with optimized GR
+            angle_phase_dict_opt = [optimize_dict(gates) for gates in angle_phase_dict]
+            optcount = gate_count(angle_phase_dict_opt)
+            stats.add_row("optcount", optcount)
+
+            # update values
+            opt_old = [
+                (optcount[j] / oldcount[j]) if oldcount[j] > ZERO else 0.0
+                for j in range(3)
+            ]
+            stats.add_row("opt_old", opt_old)
+
+            perm_opt = [
+                (perm[j] / optcount[j]) if optcount[j] > ZERO else 0.0 for j in range(3)
+            ]
+            stats.add_row("perm_opt", perm_opt)
+
+        data_d = pd.DataFrame(
+            stats.data, columns=["name", "Toffoli", "CNOT", "1-qubit"]
+        )
+        data_d.insert(1, "d", d)
+
+        data.append(data_d)
+
+        # check status
+        print(
+            int(d / step),
+            "/",
+            int(N * percentage / (100 * step)),
+            "---------------------------------------------------------------------",
+        )
+
+    pd.concat(data).to_csv(data_folder / f"Count_{n_qubit}.csv", mode="w", index=False)
 
 
 if __name__ == "__main__":
-    generate_data(20, percentage=1, step=100, repeat=10)
+    generate_data(16, percentage=1, step=100, repeat=10)

@@ -2,7 +2,6 @@ from typing import Any
 
 import numpy as np
 import scipy as sp
-import scipy.sparse
 
 __all__ = [
     "ZERO",
