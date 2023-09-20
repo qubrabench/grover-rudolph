@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Sized, Union
 
 import numpy as np
 import scipy as sp
@@ -8,11 +8,14 @@ __all__ = [
     "neighbour_dict",
     "optimize_dict",
     "reduced_density_matrix",
-    "generate_sparse_vect",
+    "generate_sparse_unit_vector",
     "hamming_weight",
     "x_gate_merging",
     "RotationGate",
     "ControlledRotationGateMap",
+    "number_of_qubits",
+    "StateVector",
+    "sanitize_sparse_state_vector",
 ]
 
 # Some useful type aliases:
@@ -71,12 +74,8 @@ def optimize_dict(
     Returns:
         optimized collection of controlled gates
     """
-    merging_success = True
-
-    # Continue until everything that can be merged is merged
-    while merging_success and len(gate_dictionary) > 1:
-        merging_success = run_one_merge_step(gate_dictionary)
-
+    while run_one_merge_step(gate_dictionary):
+        pass
     return gate_dictionary
 
 
@@ -91,6 +90,8 @@ def run_one_merge_step(
     Returns:
         True if some merge happened
     """
+    if len(gate_dictionary) <= 1:
+        return False
 
     for k1, v1 in gate_dictionary.items():
         neighbours = neighbour_dict(k1)
@@ -114,15 +115,18 @@ def run_one_merge_step(
     return False
 
 
-def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
+def reduced_density_matrix(rho: np.ndarray, traced_dim: int) -> np.ndarray:
     """
     Computes the partial trace on a second subspace of dimension traced_dimension
 
+    TODO maybe an example? I'm not sure I understand what exactly this is tracing over.
+
     Args:
-        rho: Complex 2D array
-        traced_dim: int
+        rho: TODO explain
+        traced_dim: TODO explain
 
     Returns:
+        TODO explain
         Complex 2D array
     """
 
@@ -141,6 +145,8 @@ def x_gate_merging(dictionary: ControlledRotationGateMap) -> int:
     """
     Counts the number of x-gates that can be merged given an optimized dictionary.
 
+    For each consecutive pairs of keys, if they have matching '0's at some index, then then X gates can be dropped.
+
     Parameters:
         dictionary: A dictionary containing quantum gates represented as keys.
 
@@ -148,27 +154,24 @@ def x_gate_merging(dictionary: ControlledRotationGateMap) -> int:
         The count of x-gates that can be merged.
     """
     keys = list(dictionary.keys())
-
-    # Iterate through consecutive pairs of keys
-    # Check if x-gate merging condition is met: if two consecutive bit strings have a '0' at the same position
-    # Increment the counter if the condition is met
-    return [("0", "0") in zip(k1, k2) for k1, k2 in zip(keys, keys[1:])].count(True)
+    return sum(list(zip(k1, k2)).count(("0", "0")) for k1, k2 in zip(keys, keys[1:]))
 
 
-def generate_sparse_vect(
-    n_qubit: int, d: int, vec_type="complex"
-) -> tuple[np.ndarray, np.ndarray]:
+def generate_sparse_unit_vector(
+    n_qubit: int, d: int, *, dtype: str = "complex"
+) -> sp.sparse.spmatrix:
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
     as couples: position and value of the i-th non zero element
     The sign of the first entry  is  always real positive to fix the overall phase
 
     Args:
-        Number of qubits N, sparsity d
+        n_qubit: number of qubits
+        d: number of non-zero entries required in the output state vector
+        dtype: datatype of the generated entries. defaults to "complex"
 
     Returns:
-        vector = complex array of length d, with the values of the amplitudes
-        nonzero_locations = int array of length d (ordered) with the position of the non-zero element
+        A state vector stored as a scipy.sparse.spmatrix object with shape (1, 2**n_qubit), having exactly d non-zero elements.
     """
     N = 2**n_qubit
 
@@ -177,12 +180,10 @@ def generate_sparse_vect(
             "Sparsity must be less or equal than the dimension of the vector"
         )
 
-    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=vec_type)
-    sparse_v.sort_indices()
-    nonzero_loc = sparse_v.nonzero()[1]
-    values = sparse_v.data
-    values = values / np.linalg.norm(values)
-    return values, nonzero_loc
+    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=dtype)
+    sparse_v /= sp.linalg.norm(sparse_v.data)
+
+    return sparse_v
 
 
 def hamming_weight(n: int) -> int:
@@ -191,3 +192,20 @@ def hamming_weight(n: int) -> int:
         h_weight += 1
         n &= n - 1
     return h_weight
+
+
+def number_of_qubits(vec: Sized) -> int:
+    return int(np.ceil(np.log2(len(vec))))
+
+
+StateVector = Union[np.ndarray, sp.sparse.spmatrix, list[float]]
+
+
+def sanitize_sparse_state_vector(
+    vec: StateVector, *, copy=False
+) -> sp.sparse.csr_matrix:
+    vec = sp.sparse.csr_matrix(vec)
+    if copy:
+        vec = vec.copy()
+    vec.sort_indices()
+    return vec

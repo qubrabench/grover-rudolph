@@ -3,7 +3,13 @@ import numpy.typing as npt
 from typing import Any
 from functools import reduce
 
-from helping_sp import reduced_density_matrix, ControlledRotationGateMap
+from helping_sp import (
+    reduced_density_matrix,
+    ControlledRotationGateMap,
+    number_of_qubits,
+    StateVector,
+    sanitize_sparse_state_vector,
+)
 from state_preparation import phase_angle_dict, build_permutation
 
 
@@ -127,8 +133,7 @@ def cycle_circuit(cycle: Any, state: Any) -> Any:
 
 
 def main_circuit(
-    vector: npt.NDArray[np.complexfloating],
-    nonzero_locations: npt.NDArray[np.integer],
+    state: StateVector,
     N_qubit: int,
 ) -> npt.NDArray[np.complexfloating]:
     """
@@ -141,6 +146,10 @@ def main_circuit(
     Returns:
         Output of the circuit as a density matrix (complex matrix)
     """
+    state = sanitize_sparse_state_vector(state)
+
+    vector = state.data
+    nonzero_locations = state.nonzero()[1]
 
     e0 = np.array([float(1), float(0)])  # zero state
 
@@ -149,7 +158,7 @@ def main_circuit(
 
     # add zeros to the vector until it has as length a power of 2
 
-    d = int(np.ceil(np.log2(len(nonzero_locations))))  # sparsity
+    d = number_of_qubits(nonzero_locations)  # sparsity
     angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d)
     phi = circuit_GR(angle_phase_dict)
 

@@ -1,9 +1,8 @@
 from pathlib import Path
-import numpy as np
 import pandas as pd
 
-from helping_sp import generate_sparse_vect, ZERO, optimize_dict
-from state_preparation import phase_angle_dict, gate_count, main
+from helping_sp import generate_sparse_unit_vector, ZERO, optimize_dict
+from state_preparation import phase_angle_dict, gate_count, main, GateCounts
 
 data_folder = Path(__file__).parent.parent / "data"  # ../data
 data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
@@ -13,7 +12,7 @@ class Stats:
     def __init__(self):
         self.data = []
 
-    def add_row(self, name: str, gate_counts: np.ndarray):
+    def add_row(self, name: str, gate_counts: GateCounts | list[int]):
         self.data.append([name] + list(gate_counts))
 
 
@@ -33,15 +32,19 @@ def generate_data(
     """
 
     N = 2**n_qubit
+    d_range = range(1, int(N * percentage / 100), step)
 
     data: list[pd.DataFrame] = []
-    for d in range(1, int(N * percentage / 100), step):
+    for ix, d in enumerate(d_range):
         stats = Stats()
-        for i in range(repeat):
+        for _ in range(repeat):
             # Permutation GR
-            vector, nonzero_loc = generate_sparse_vect(n_qubit, d)
+            full_vec = generate_sparse_unit_vector(n_qubit, d)
 
-            perm = main(vector, nonzero_loc, n_qubit)
+            vector = full_vec.data
+            nonzero_loc = full_vec.nonzero()[1]
+
+            perm = main(full_vec, n_qubit)
             stats.add_row("perm", perm)
 
             # compare with ver 1.0 GR
@@ -71,17 +74,12 @@ def generate_data(
         data_d = pd.DataFrame(
             stats.data, columns=["name", "Toffoli", "CNOT", "1-qubit"]
         )
-        data_d.insert(1, "d", d)
+        data_d.insert(1, "d", d)  # type: ignore
 
         data.append(data_d)
 
         # check status
-        print(
-            int(d / step),
-            "/",
-            int(N * percentage / (100 * step)),
-            "---------------------------------------------------------------------",
-        )
+        print(f"{ix + 1} / {len(d_range)} " + "-" * 40)
 
     pd.concat(data).to_csv(data_folder / f"Count_{n_qubit}.csv", mode="w", index=False)
 
