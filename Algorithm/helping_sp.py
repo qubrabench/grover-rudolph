@@ -76,32 +76,44 @@ def optimize_dict(
 
     # Continue until everything that can be merged is merged
     while merging_success and len(gate_dictionary) > 1:
-        merging_success = False
-
-        for k1, v1 in gate_dictionary.items():
-            neighbours = neighbour_dict(k1)
-
-            for k2, position in neighbours.items():
-                if k2 not in gate_dictionary:
-                    continue
-
-                v2 = gate_dictionary[k2]
-
-                # Consider only different items with same angle and phase
-                if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
-                    continue
-
-                # Replace the different char with 'e' and remove the old items
-                gate_dictionary.pop(k1)
-                gate_dictionary.pop(k2)
-                gate_dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
-                merging_success = True
-                break
-
-            if merging_success:
-                break
+        merging_success = meargeable(gate_dictionary)
 
     return gate_dictionary
+
+
+def meargeable(
+    gate_dictionary: ControlledRotationGateMap,
+) -> bool:
+    """
+    Returns True if a merging happens, False otherwise.
+    It modifies the dictionary by doing the merging.
+
+    Args:
+        dictionary: {key = (string of '0', '1') : value = [float,float]}
+    Returns:
+        bool
+    """
+
+    for k1, v1 in gate_dictionary.items():
+        neighbours = neighbour_dict(k1)
+
+        for k2, position in neighbours.items():
+            if k2 not in gate_dictionary:
+                continue
+
+            v2 = gate_dictionary[k2]
+
+            # Consider only different items with same angle and phase
+            if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
+                continue
+
+            # Replace the different char with 'e' and remove the old items
+            gate_dictionary.pop(k1)
+            gate_dictionary.pop(k2)
+            gate_dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
+            return True
+
+    return False
 
 
 def reduced_density_matrix(rho: Any, traced_dim: int) -> Any:
