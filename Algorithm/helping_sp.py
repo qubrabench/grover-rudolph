@@ -4,6 +4,9 @@ import numpy as np
 import scipy as sp
 
 __all__ = [
+    "RotationGate",
+    "ControlledRotationGateMap",
+    "StateVector",
     "ZERO",
     "neighbour_dict",
     "optimize_dict",
@@ -11,10 +14,7 @@ __all__ = [
     "generate_sparse_unit_vector",
     "hamming_weight",
     "x_gate_merging",
-    "RotationGate",
-    "ControlledRotationGateMap",
     "number_of_qubits",
-    "StateVector",
     "sanitize_sparse_state_vector",
 ]
 
@@ -23,18 +23,19 @@ RotationGate = tuple[float, float]
 """(phase, angle) pair describing a rotation gate"""
 
 Controls = str
-"""a sequence of control bits
-each bit is one of "0", "1" or "e"
-"""
+"""a sequence of control bits. each bit is one of {0, 1, e}"""
 
 ControlledRotationGateMap = dict[Controls, RotationGate]
 """keys are control bits, target is a rotation gate description"""
+
+StateVector = Union[np.ndarray, sp.sparse.spmatrix, list[float]]
+"""A row vector representing a quantum state"""
 
 ZERO = 1e-8
 """global zero precision"""
 
 
-def neighbour_dict(string1: Controls) -> dict[Controls, int]:
+def neighbour_dict(controls: Controls) -> dict[Controls, int]:
     """
     Finds the neighbours of a string (ignoring e), i.e. the mergeble strings
     Returns a dictionary with as keys the neighbours and as value the position in which they differ
@@ -43,17 +44,17 @@ def neighbour_dict(string1: Controls) -> dict[Controls, int]:
     >>> assert neighbour_dict("1e") == {'0e': 0}
 
     Args:
-        string1: string made of '0', '1', 'e'
+        controls: string made of '0', '1', 'e'
     Returns:
-        dict = {string: int}
+        A dictionary {control-string: swapped-index}
     """
     neighbours = {}
-    for i, c in enumerate(string1):
+    for i, c in enumerate(controls):
         if c == "e":
             continue
 
         c_opposite = "1" if c == "0" else "0"
-        key = string1[:i] + c_opposite + string1[i + 1 :]
+        key = controls[:i] + c_opposite + controls[i + 1 :]
         neighbours[key] = i
 
     return neighbours
@@ -196,9 +197,6 @@ def hamming_weight(n: int) -> int:
 
 def number_of_qubits(vec: Sized) -> int:
     return int(np.ceil(np.log2(len(vec))))
-
-
-StateVector = Union[np.ndarray, sp.sparse.spmatrix, list[float]]
 
 
 def sanitize_sparse_state_vector(
