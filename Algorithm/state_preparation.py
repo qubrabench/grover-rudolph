@@ -59,19 +59,20 @@ def phase_angle_dict(
     if abs(sp.linalg.norm(vector) - 1.0) > ZERO:
         raise ValueError("vector should be normalized")
 
-    list_dictionaries: list[dict] = []
+    final_gates: list[dict] = []
 
     for qbit in range(n_qubit):
         new_nonzero_locations = []
         new_vector = []
 
+        # TODO(doubt) is this equal to the final len(dictionary)?
         length_dict = 2 ** (n_qubit - qbit - 1)
         dictionary: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
-        i = 0
 
         phases: np.ndarray = np.angle(vector)
 
+        i = 0
         while i in range(sparsity):
             angle: float
             phase: float
@@ -98,58 +99,60 @@ def phase_angle_dict(
                         dictionary[key] = (angle, phase)
 
                 i += 1
-                continue
-
-            # check consecutives numbers and even position
-            loc0 = nonzero_locations[i]
-            loc1 = nonzero_locations[i + 1]
-            if (loc1 - loc0 == 1) and (loc0 % 2 == 0):
-                new_component = np.exp(1j * phases[i]) * np.sqrt(
-                    abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
-                )
-                new_vector.append(new_component)
-                new_nonzero_locations.append(int(np.floor(loc0 / 2)))
-
-                angle = (
-                    2 * np.arccos(np.clip(abs(vector[i] / new_component), -1, 1))
-                    if abs(new_component) > ZERO
-                    else 0.0
-                )
-                phase = -phases[i] + phases[i + 1]
-                i += 1
             else:
-                if loc0 % 2 == 0:
-                    angle = 0.0
-                    phase = -phases[i]
-                    new_vector.append(vector[i])
-                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+                # check consecutives numbers and even position
+                loc0 = nonzero_locations[i]
+                loc1 = nonzero_locations[i + 1]
 
-                else:
-                    angle = np.pi
-                    phase = phases[i]
-                    new_vector.append(abs(vector[i]))
-                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
-
-            i += 1
-
-            if (abs(angle) > ZERO) or (abs(phase) > ZERO):
-                if length_dict == 1:
-                    dictionary = {"": (angle, phase)}
-                else:
-                    key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
-                        n_qubit - qbit - 1
+                if (loc1 - loc0 == 1) and (loc0 % 2 == 0):
+                    new_component = np.exp(1j * phases[i]) * np.sqrt(
+                        abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
                     )
-                    dictionary[key] = (angle, phase)
+                    new_vector.append(new_component)
+                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
 
-        vector = new_vector
-        nonzero_locations = new_nonzero_locations
+                    angle = (
+                        2 * np.arccos(np.clip(abs(vector[i] / new_component), -1, 1))
+                        if abs(new_component) > ZERO
+                        else 0.0
+                    )
+                    phase = -phases[i] + phases[i + 1]
+                    i += 1
+                else:
+                    if loc0 % 2 == 0:
+                        angle = 0.0
+                        phase = -phases[i]
+                        new_vector.append(vector[i])
+                        new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+
+                    else:
+                        angle = np.pi
+                        phase = phases[i]
+                        new_vector.append(abs(vector[i]))
+                        new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+
+                i += 1  # TODO(doubt) should this be inside the above else: branch (starting line 121)
+
+                if (abs(angle) > ZERO) or (abs(phase) > ZERO):
+                    if length_dict == 1:
+                        dictionary = {"": (angle, phase)}
+                    else:
+                        key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
+                            n_qubit - qbit - 1
+                        )
+                        dictionary[key] = (angle, phase)
+
+        vector, nonzero_locations = new_vector, new_nonzero_locations
+
+        assert len(dictionary) == length_dict
 
         if optimization:
             dictionary = optimize_dict(dictionary)
 
-        list_dictionaries.insert(0, dictionary)
+        final_gates.append(dictionary)
 
-    return list_dictionaries
+    final_gates.reverse()
+    return final_gates
 
 
 def gate_count(dict_list: list[ControlledRotationGateMap]) -> GateCounts:
