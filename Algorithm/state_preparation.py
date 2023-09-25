@@ -66,7 +66,7 @@ def phase_angle_dict(
         new_vector = []
         # lenght of the resulting dictionary without optimization and without discarding zero angles/phases
         length_dict = 2 ** (n_qubit - qbit - 1)
-        dictionary: ControlledRotationGateMap = {}
+        gate_operations: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
 
         phases: np.ndarray = np.angle(vector)
@@ -90,13 +90,13 @@ def phase_angle_dict(
                     angle = np.pi
                     phase = phases[i]
                     new_vector.append(abs(vector[i]))
-                # add in dictionary if they are not zero
+                # add in the dictionary gate_operations if they are not zero
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                     if length_dict == 1:
-                        dictionary = {"": (angle, phase)}
+                        gate_operations = {"": (angle, phase)}
                     else:
                         key = str(bin(loc // 2)[2:]).zfill(n_qubit - qbit - 1)
-                        dictionary[key] = (angle, phase)
+                        gate_operations[key] = (angle, phase)
 
                 i += 1
             else:
@@ -142,29 +142,29 @@ def phase_angle_dict(
 
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                     if length_dict == 1:
-                        dictionary = {"": (angle, phase)}
+                        gate_operations = {"": (angle, phase)}
                     else:
                         key = str(bin(loc0 // 2)[2:]).zfill(n_qubit - qbit - 1)
-                        dictionary[key] = (angle, phase)
+                        gate_operations[key] = (angle, phase)
 
         vector, nonzero_locations = new_vector, new_nonzero_locations
 
         if optimization:
-            dictionary = optimize_dict(dictionary)
+            gate_operations = optimize_dict(gate_operations)
 
-        final_gates.append(dictionary)
+        final_gates.append(gate_operations)
 
     final_gates.reverse()
     return final_gates
 
 
-def gate_count(dict_list: list[ControlledRotationGateMap]) -> GateCounts:
+def gate_count(total_gate_operations: list[ControlledRotationGateMap]) -> GateCounts:
     """
     Counts how many gates you need to build  the circuit in terms of elemental ones (single rotation gates, one-control-one-target
     gates on the |1⟩ state, refered as 2 qubits gates, and Toffoli gates)
 
     Args:
-        dict_list = the list of dictionaries of the form dict[str] = [float,float], where str is made of '0','1','e'
+        total_gate_operations = the list of dictionaries of the form dict[str] = [float,float], where str is made of '0','1','e'
 
     Returns:
         A GateCounts (ndarray) object
@@ -173,9 +173,9 @@ def gate_count(dict_list: list[ControlledRotationGateMap]) -> GateCounts:
     N_cnot = 0
     N_1_gate = 0
 
-    for dictionary in dict_list:
+    for gate_operations in total_gate_operations:
         # Build the unitary for each dictonary
-        for k in dictionary:
+        for k in gate_operations:
             count0 = k.count("0")
             count1 = k.count("1")
 
@@ -189,7 +189,7 @@ def gate_count(dict_list: list[ControlledRotationGateMap]) -> GateCounts:
                 N_1_gate += 4 + (2 * count0)
 
         # Subtract the two x-gates that form an identity from the total count of 1-qubit gates
-        N_1_gate -= 2 * x_gate_merging(dictionary)
+        N_1_gate -= 2 * x_gate_merging(gate_operations)
 
     return np.array([N_toffoli, N_cnot, N_1_gate])
 

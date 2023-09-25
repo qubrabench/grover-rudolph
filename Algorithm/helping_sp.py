@@ -61,7 +61,7 @@ def neighbour_dict(controls: Controls) -> dict[Controls, int]:
 
 
 def optimize_dict(
-    gate_dictionary: ControlledRotationGateMap,
+    gate_operations: ControlledRotationGateMap,
 ) -> ControlledRotationGateMap:
     """
     Optimize the dictionary by merging some gates in one:
@@ -71,46 +71,46 @@ def optimize_dict(
     >>> assert optimize_dict({"11": (3.14, 0), "10": (3.14, 0)}) == {"1e": (3.14, 0)}
 
     Args:
-        gate_dictionary: collection of controlled gates to be applied
+        gate_operations: collection of controlled gates to be applied
     Returns:
         optimized collection of controlled gates
     """
-    while run_one_merge_step(gate_dictionary):
+    while run_one_merge_step(gate_operations):
         pass
-    return gate_dictionary
+    return gate_operations
 
 
 def run_one_merge_step(
-    gate_dictionary: ControlledRotationGateMap,
+    gate_operations: ControlledRotationGateMap,
 ) -> bool:
     """
     Run a single merging step, modifying the input dictionary.
 
     Args:
-        gate_dictionary: collection of controlled gates to be applied
+        gate_operations: collection of controlled gates to be applied
     Returns:
         True if some merge happened
     """
-    if len(gate_dictionary) <= 1:
+    if len(gate_operations) <= 1:
         return False
 
-    for k1, v1 in gate_dictionary.items():
+    for k1, v1 in gate_operations.items():
         neighbours = neighbour_dict(k1)
 
         for k2, position in neighbours.items():
-            if k2 not in gate_dictionary:
+            if k2 not in gate_operations:
                 continue
 
-            v2 = gate_dictionary[k2]
+            v2 = gate_operations[k2]
 
             # Consider only different items with same angle and phase
             if (abs(v1[0] - v2[0]) > ZERO) or (abs(v1[1] - v2[1]) > ZERO):
                 continue
 
             # Replace the different char with 'e' and remove the old items
-            gate_dictionary.pop(k1)
-            gate_dictionary.pop(k2)
-            gate_dictionary[k1[:position] + "e" + k1[position + 1 :]] = v1
+            gate_operations.pop(k1)
+            gate_operations.pop(k2)
+            gate_operations[k1[:position] + "e" + k1[position + 1 :]] = v1
             return True
 
     return False
@@ -146,19 +146,19 @@ def reduced_density_matrix(rho: np.ndarray, traced_dim: int) -> np.ndarray:
     return reduced_rho
 
 
-def x_gate_merging(dictionary: ControlledRotationGateMap) -> int:
+def x_gate_merging(gate_operations: ControlledRotationGateMap) -> int:
     """
     Counts the number of x-gates that can be merged given an optimized dictionary.
 
     For each consecutive pairs of keys, if they have matching '0's at some index, then then X gates can be dropped.
 
     Parameters:
-        dictionary: A dictionary containing quantum gates represented as keys.
+        gate_operations: A dictionary containing quantum gates represented as keys.
 
     Returns:
         The count of x-gates that can be merged.
     """
-    keys = list(dictionary.keys())
+    keys = list(gate_operations.keys())
     return sum(list(zip(k1, k2)).count(("0", "0")) for k1, k2 in zip(keys, keys[1:]))
 
 
