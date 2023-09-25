@@ -66,6 +66,7 @@ def phase_angle_dict(
         new_vector = []
 
         # TODO(doubt) is this equal to the final len(dictionary)?
+        # yes, but only before the optimization
         length_dict = 2 ** (n_qubit - qbit - 1)
         dictionary: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
@@ -114,6 +115,7 @@ def phase_angle_dict(
                         * np.arccos(
                             np.clip(abs(vector[i] / new_component), -1, 1)
                         )  # TODO(doubt) why clip? the argument should not overflow the range right?
+                        # It doesn't but it is to avoid the warning or small precision errors (could be 1.0000001)
                         if abs(new_component) > ZERO
                         else 0.0
                     )
@@ -133,6 +135,7 @@ def phase_angle_dict(
                         new_nonzero_locations.append(loc0 // 2)
 
                 i += 1  # TODO(doubt) should this be inside the above else: branch (starting line 121)
+                # No, if the above if happens you should skip one iteration, that is i+=2, you can put this inside the else and += 2 beforehand, maybe it is more readable
 
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                     if length_dict == 1:

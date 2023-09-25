@@ -120,15 +120,19 @@ def reduced_density_matrix(rho: np.ndarray, traced_dim: int) -> np.ndarray:
     """
     Computes the partial trace on a second subspace of dimension traced_dimension
 
-    TODO maybe an example? I'm not sure I understand what exactly this is tracing over.
+    If rho is in a composite Hilbert space H_a x H_b
+    and we want to discard the second space H_b,
+    the final state will be the reduced density matrix in H_a,
+    computed by this function by specifying the dimension of H_b, which is traced over
+
+    E.g. |01><01| -> |0><0|
 
     Args:
-        rho: TODO explain
-        traced_dim: TODO explain
+        rho: complex 2D array with as dimensions powers of two
+        traced_dim: dimension of the subspace that is traced over
 
     Returns:
-        TODO explain
-        Complex 2D array
+        reduced_rho: Complex 2D array
     """
 
     total_dim = len(rho[0])

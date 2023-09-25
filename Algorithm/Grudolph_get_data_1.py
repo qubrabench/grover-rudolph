@@ -21,14 +21,14 @@ def generate_data(
 ):
     """
     Create a txt file with the data: sparsity, gate count
-    Creates 2^N * repeat data
+    Creates N*percentage/(100*step) data
     Notice that each time you run the program more data are added to the file referring to n_qubit, if you want to avoid this open the file with 'w' instead of 'a'
 
     Args:
         n_qubit: number of qubits
-        repeat: TODO add description
-        percentage: TODO add description
-        step: TODO add description
+        repeat: how many data for each point (if more then one, the mean is between them is saved)
+        percentage: sample only sparse states, with as many non_zero locations as a percentage 2**n_qubit
+        step: sample every 'step' values of sparsity
     """
 
     N = 2**n_qubit

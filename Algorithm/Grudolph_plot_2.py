@@ -49,18 +49,6 @@ def generate_plots(n_qubit: int, *, show_plots: bool = True):
 
     if show_plots:
         plt.show()
-    """
-    # FIT
-
-    slope, intercept, r_value, p_value, std_err = stats.linregress(d, c_t)
-    print(f"Fit Number of Toffoli gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
-
-    slope, intercept, r_value, p_value, std_err = stats.linregress(d, c2)
-    print(f"Fit Number of 2-qubits gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
-
-    slope, intercept, r_value, p_value, std_err = stats.linregress(d, c1)
-    print(f"Fit Number of 1-qubits gates:\nslope: {slope}", f"\t intercept: {intercept}\n")
-    """
 
 
 if __name__ == "__main__":
