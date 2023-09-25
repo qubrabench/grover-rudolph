@@ -75,21 +75,24 @@ def phase_angle_dict(
 
         i = 0
         while i in range(sparsity):
+            # compute angles and phases
             angle: float
             phase: float
+            # last step of the while loop
             if i + 1 == sparsity:
                 loc = nonzero_locations[i]
                 new_nonzero_locations.append(loc // 2)
-
+                # if the non_zero element is at the very end of the vector
                 if nonzero_locations[i] % 2 == 0:
                     angle = 0.0
                     phase = -phases[i]
                     new_vector.append(vector[i])
+                # if the non_zero element is second-last
                 else:
                     angle = np.pi
                     phase = phases[i]
                     new_vector.append(abs(vector[i]))
-
+                # add in dictionary if they are not zero
                 if (abs(angle) > ZERO) or (abs(phase) > ZERO):
                     if length_dict == 1:
                         dictionary = {"": (angle, phase)}
@@ -99,10 +102,11 @@ def phase_angle_dict(
 
                 i += 1
             else:
-                # check consecutives numbers and even position
+                # divide the non_zero locations in pairs
                 loc0 = nonzero_locations[i]
                 loc1 = nonzero_locations[i + 1]
 
+                # if the non_zero locations are consecutive, with the first one in an even position
                 if (loc1 - loc0 == 1) and (loc0 % 2 == 0):
                     new_component = np.exp(1j * phases[i]) * np.sqrt(
                         abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
@@ -122,6 +126,7 @@ def phase_angle_dict(
                     phase = -phases[i] + phases[i + 1]
                     i += 1
                 else:
+                    # the non_zero location is on the right of the pair
                     if loc0 % 2 == 0:
                         angle = 0.0
                         phase = -phases[i]
