@@ -64,9 +64,7 @@ def phase_angle_dict(
     for qbit in range(n_qubit):
         new_nonzero_locations = []
         new_vector = []
-
-        # TODO(doubt) is this equal to the final len(dictionary)?
-        # yes, but only before the optimization
+        # lenght of the resulting dictionary without optimization and without discarding zero angles/phases
         length_dict = 2 ** (n_qubit - qbit - 1)
         dictionary: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
@@ -150,8 +148,6 @@ def phase_angle_dict(
                         dictionary[key] = (angle, phase)
 
         vector, nonzero_locations = new_vector, new_nonzero_locations
-
-        assert len(dictionary) == length_dict
 
         if optimization:
             dictionary = optimize_dict(dictionary)
