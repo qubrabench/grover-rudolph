@@ -78,7 +78,7 @@ def phase_angle_dict(
             phase: float
             if i + 1 == sparsity:
                 loc = nonzero_locations[i]
-                new_nonzero_locations.append(int(np.floor(loc / 2)))
+                new_nonzero_locations.append(loc // 2)
 
                 if nonzero_locations[i] % 2 == 0:
                     angle = 0.0
@@ -93,9 +93,7 @@ def phase_angle_dict(
                     if length_dict == 1:
                         dictionary = {"": (angle, phase)}
                     else:
-                        key = str(bin(int(np.floor(loc / 2)))[2:]).zfill(
-                            n_qubit - qbit - 1
-                        )
+                        key = str(bin(loc // 2)[2:]).zfill(n_qubit - qbit - 1)
                         dictionary[key] = (angle, phase)
 
                 i += 1
@@ -109,10 +107,13 @@ def phase_angle_dict(
                         abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
                     )
                     new_vector.append(new_component)
-                    new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+                    new_nonzero_locations.append(loc0 // 2)
 
                     angle = (
-                        2 * np.arccos(np.clip(abs(vector[i] / new_component), -1, 1))
+                        2
+                        * np.arccos(
+                            np.clip(abs(vector[i] / new_component), -1, 1)
+                        )  # TODO(doubt) why clip? the argument should not overflow the range right?
                         if abs(new_component) > ZERO
                         else 0.0
                     )
@@ -123,13 +124,13 @@ def phase_angle_dict(
                         angle = 0.0
                         phase = -phases[i]
                         new_vector.append(vector[i])
-                        new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+                        new_nonzero_locations.append(loc0 // 2)
 
                     else:
                         angle = np.pi
                         phase = phases[i]
                         new_vector.append(abs(vector[i]))
-                        new_nonzero_locations.append(int(np.floor(loc0 / 2)))
+                        new_nonzero_locations.append(loc0 // 2)
 
                 i += 1  # TODO(doubt) should this be inside the above else: branch (starting line 121)
 
@@ -137,9 +138,7 @@ def phase_angle_dict(
                     if length_dict == 1:
                         dictionary = {"": (angle, phase)}
                     else:
-                        key = str(bin(int(np.floor(loc0 / 2)))[2:]).zfill(
-                            n_qubit - qbit - 1
-                        )
+                        key = str(bin(loc0 // 2)[2:]).zfill(n_qubit - qbit - 1)
                         dictionary[key] = (angle, phase)
 
         vector, nonzero_locations = new_vector, new_nonzero_locations
