@@ -2,7 +2,12 @@ from pathlib import Path
 import pandas as pd
 
 from helping_sp import generate_sparse_unit_vector, ZERO, optimize_dict
-from state_preparation import phase_angle_dict, gate_count, main, GateCounts
+from state_preparation import (
+    grover_rudolph,
+    gate_count,
+    permutation_grover_rudolph,
+    GateCounts,
+)
 
 data_folder = Path(__file__).parent.parent / "data"  # ../data
 data_folder.mkdir(parents=True, exist_ok=True)  # create it if it does not already exist
@@ -39,18 +44,13 @@ def generate_data(
         stats = Stats()
         for _ in range(repeat):
             # Permutation GR
-            full_vec = generate_sparse_unit_vector(n_qubit, d)
+            vector = generate_sparse_unit_vector(n_qubit, d)
 
-            vector = full_vec.data
-            nonzero_loc = full_vec.nonzero()[1]
-
-            perm = main(full_vec, n_qubit)
+            perm = permutation_grover_rudolph(vector)
             stats.add_row("perm", perm)
 
-            # compare with ver 1.0 GR
-            angle_phase_dict = phase_angle_dict(
-                vector, nonzero_loc, n_qubit, optimization=False
-            )
+            # compare with ver 1.0 GR on the actual vector
+            angle_phase_dict = grover_rudolph(vector, optimization=False)
             oldcount = gate_count(angle_phase_dict)
             stats.add_row("oldcount", oldcount)
 

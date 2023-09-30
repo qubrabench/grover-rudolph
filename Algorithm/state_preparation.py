@@ -3,8 +3,6 @@
 The algorithm used is Grover Rudolph.
 """
 import numpy as np
-import numpy.typing as npt
-import scipy as sp
 
 from helping_sp import (
     ZERO,
@@ -15,14 +13,15 @@ from helping_sp import (
     number_of_qubits,
     sanitize_sparse_state_vector,
     StateVector,
+    RotationGate,
 )
 
 __all__ = [
-    "phase_angle_dict",
+    "grover_rudolph",
     "gate_count",
     "build_permutation",
     "count_cycle",
-    "main",
+    "permutation_grover_rudolph",
     "GateCounts",
 ]
 
@@ -30,12 +29,8 @@ GateCounts = np.ndarray
 """Gate counts stored as a numpy array with three integers: Tofolli, CNOT, 1-qubit"""
 
 
-def phase_angle_dict(
-    vector: npt.NDArray[np.complexfloating] | list[float],
-    nonzero_locations: npt.NDArray[np.integer] | list[int],
-    n_qubit: int,
-    *,
-    optimization: bool = True,
+def grover_rudolph(
+    vector: StateVector, *, optimization: bool = True
 ) -> list[ControlledRotationGateMap]:
     """
     Generate a list of dictonaries for the angles given the amplitude vector
@@ -48,57 +43,48 @@ def phase_angle_dict(
 
     Args:
         vector: compressed version (only non-zero elements) of the sparse state vector to be prepared
-        nonzero_locations: list of non-zero indices in the original vector
-        n_qubit: total number of qubits?
         optimization: decide if optimize the angles or not, defaults to True
 
     Returns:
         a sequence of controlled gates to be applied.
     """
+    vector = sanitize_sparse_state_vector(vector)
 
-    if abs(sp.linalg.norm(vector) - 1.0) > ZERO:
-        raise ValueError("vector should be normalized")
+    nonzero_values = vector.data
+    nonzero_locations = vector.nonzero()[1]
+    N_qubit = number_of_qubits(nonzero_values)
 
-    final_gates: list[dict] = []
+    final_gates: list[ControlledRotationGateMap] = []
 
-    for qbit in range(n_qubit):
+    for qbit in range(N_qubit):
+        new_nonzero_values = []
         new_nonzero_locations = []
-        new_vector = []
-        # lenght of the resulting dictionary without optimization and without discarding zero angles/phases
-        length_dict = 2 ** (n_qubit - qbit - 1)
+
         gate_operations: ControlledRotationGateMap = {}
         sparsity = len(nonzero_locations)
 
-        phases: np.ndarray = np.angle(vector)
+        phases: np.ndarray = np.angle(nonzero_values)
 
         i = 0
         while i in range(sparsity):
-            # compute angles and phases
             angle: float
             phase: float
+
+            loc = nonzero_locations[i]
+
             # last step of the while loop
             if i + 1 == sparsity:
-                loc = nonzero_locations[i]
                 new_nonzero_locations.append(loc // 2)
-                # if the non_zero element is at the very end of the vector
                 if nonzero_locations[i] % 2 == 0:
+                    # if the non_zero element is at the very end of the vector
                     angle = 0.0
                     phase = -phases[i]
-                    new_vector.append(vector[i])
-                # if the non_zero element is second-last
+                    new_nonzero_values.append(nonzero_values[i])
                 else:
+                    # if the non_zero element is second-last
                     angle = np.pi
                     phase = phases[i]
-                    new_vector.append(abs(vector[i]))
-                # add in the dictionary gate_operations if they are not zero
-                if (abs(angle) > ZERO) or (abs(phase) > ZERO):
-                    if length_dict == 1:
-                        gate_operations = {"": (angle, phase)}
-                    else:
-                        key = str(bin(loc // 2)[2:]).zfill(n_qubit - qbit - 1)
-                        gate_operations[key] = (angle, phase)
-
-                i += 1
+                    new_nonzero_values.append(abs(nonzero_values[i]))
             else:
                 # divide the non_zero locations in pairs
                 loc0 = nonzero_locations[i]
@@ -107,17 +93,16 @@ def phase_angle_dict(
                 # if the non_zero locations are consecutive, with the first one in an even position
                 if (loc1 - loc0 == 1) and (loc0 % 2 == 0):
                     new_component = np.exp(1j * phases[i]) * np.sqrt(
-                        abs(vector[i]) ** 2 + abs(vector[i + 1]) ** 2
+                        abs(nonzero_values[i]) ** 2 + abs(nonzero_values[i + 1]) ** 2
                     )
-                    new_vector.append(new_component)
+                    new_nonzero_values.append(new_component)
                     new_nonzero_locations.append(loc0 // 2)
 
                     angle = (
                         2
                         * np.arccos(
-                            np.clip(abs(vector[i] / new_component), -1, 1)
-                        )  # TODO(doubt) why clip? the argument should not overflow the range right?
-                        # It doesn't but it is to avoid the warning or small precision errors (could be 1.0000001)
+                            np.clip(abs(nonzero_values[i] / new_component), -1, 1)
+                        )
                         if abs(new_component) > ZERO
                         else 0.0
                     )
@@ -128,26 +113,30 @@ def phase_angle_dict(
                     if loc0 % 2 == 0:
                         angle = 0.0
                         phase = -phases[i]
-                        new_vector.append(vector[i])
+                        new_nonzero_values.append(nonzero_values[i])
                         new_nonzero_locations.append(loc0 // 2)
 
                     else:
                         angle = np.pi
                         phase = phases[i]
-                        new_vector.append(abs(vector[i]))
+                        new_nonzero_values.append(abs(nonzero_values[i]))
                         new_nonzero_locations.append(loc0 // 2)
 
-                i += 1  # TODO(doubt) should this be inside the above else: branch (starting line 121)
-                # No, if the above if happens you should skip one iteration, that is i+=2, you can put this inside the else and += 2 beforehand, maybe it is more readable
+            i += 1
 
-                if (abs(angle) > ZERO) or (abs(phase) > ZERO):
-                    if length_dict == 1:
-                        gate_operations = {"": (angle, phase)}
-                    else:
-                        key = str(bin(loc0 // 2)[2:]).zfill(n_qubit - qbit - 1)
-                        gate_operations[key] = (angle, phase)
+            # add in the dictionary gate_operations if they are not zero
+            if abs(angle) > ZERO or abs(phase) > ZERO:
+                # number of control qubits for the current rotation gates
+                num_controls = N_qubit - qbit - 1
+                gate: RotationGate = (angle, phase)
 
-        vector, nonzero_locations = new_vector, new_nonzero_locations
+                if num_controls == 0:
+                    gate_operations = {"": gate}
+                else:
+                    controls = str(bin(loc // 2)[2:]).zfill(num_controls)
+                    gate_operations[controls] = gate
+
+        nonzero_values, nonzero_locations = (new_nonzero_values, new_nonzero_locations)
 
         if optimization:
             gate_operations = optimize_dict(gate_operations)
@@ -260,34 +249,28 @@ def count_cycle(cycle: list[int], N_qubit: int) -> GateCounts:
     return np.array([N_toffoli, N_cnot, N_1_gate])
 
 
-def main(
-    state: StateVector,
-    N_qubit: int,
-    *,
-    optimization: bool = True,
+def permutation_grover_rudolph(
+    state: StateVector, *, optimization: bool = True
 ) -> GateCounts:
     """
     Estimation of the number of gates needed to prepare a sparse state using permutation Grover Rudolph
 
     Args:
         state: the quantum state to be prepared.
-        N_qubit: total number of qubits used?
         optimization: choose if you want to merge the gate (set to True by default)
 
     Returns:
         A GateCounts (ndarray) object
     """
     state = sanitize_sparse_state_vector(state)
+    N_qubit = number_of_qubits(state.shape[1])
 
     vector = state.data
     nonzero_locations = state.nonzero()[1]
 
     # standard Grover Rudolph
-    d = number_of_qubits(nonzero_locations)  # sparsity
-    angle_phase_dict = phase_angle_dict(
-        vector, np.arange(len(vector)), d, optimization=optimization
-    )
-    count = gate_count(angle_phase_dict)
+    gr_gates = grover_rudolph(vector, optimization=optimization)
+    count = gate_count(gr_gates)
 
     # Permutation algorithm
     permutation = build_permutation(nonzero_locations)

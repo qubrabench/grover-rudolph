@@ -10,7 +10,6 @@ __all__ = [
     "ZERO",
     "neighbour_dict",
     "optimize_dict",
-    "reduced_density_matrix",
     "generate_sparse_unit_vector",
     "hamming_weight",
     "x_gate_merging",
@@ -20,7 +19,12 @@ __all__ = [
 
 # Some useful type aliases:
 RotationGate = tuple[float, float]
-"""(phase, angle) pair describing a rotation gate"""
+r"""(\theta, \phi) pair describing a rotation gate defined by
+
+.. math::
+
+    Ry(\theta) \cdot P(\phi)
+"""
 
 Controls = str
 """a sequence of control bits. each bit is one of {0, 1, e}"""
@@ -116,36 +120,6 @@ def run_one_merge_step(
     return False
 
 
-def reduced_density_matrix(rho: np.ndarray, traced_dim: int) -> np.ndarray:
-    """
-    Computes the partial trace on a second subspace of dimension traced_dimension
-
-    If rho is in a composite Hilbert space H_a x H_b
-    and we want to discard the second space H_b,
-    the final state will be the reduced density matrix in H_a,
-    computed by this function by specifying the dimension of H_b, which is traced over
-
-    E.g. |01><01| -> |0><0|
-
-    Args:
-        rho: complex 2D array with as dimensions powers of two
-        traced_dim: dimension of the subspace that is traced over
-
-    Returns:
-        reduced_rho: Complex 2D array
-    """
-
-    total_dim = len(rho[0])
-    final_dim = int(total_dim / traced_dim)
-    reduced_rho = np.trace(
-        rho.reshape(final_dim, traced_dim, final_dim, traced_dim),
-        axis1=1,
-        axis2=3,
-    )
-
-    return reduced_rho
-
-
 def x_gate_merging(gate_operations: ControlledRotationGateMap) -> int:
     """
     Counts the number of x-gates that can be merged given an optimized dictionary.
@@ -192,6 +166,8 @@ def generate_sparse_unit_vector(
 
 
 def hamming_weight(n: int) -> int:
+    """number of `1`s in the binary representation of n"""
+
     h_weight = 0
     while n:
         h_weight += 1
@@ -199,15 +175,22 @@ def hamming_weight(n: int) -> int:
     return h_weight
 
 
-def number_of_qubits(vec: Sized) -> int:
-    return int(np.ceil(np.log2(len(vec))))
+def number_of_qubits(vec: int | Sized) -> int:
+    """number of qubits needed to represent the vector/vector size."""
+    sz: int = vec if isinstance(vec, int) else len(vec)
+    return int(np.ceil(np.log2(sz)))
 
 
 def sanitize_sparse_state_vector(
-    vec: StateVector, *, copy=False
+    vec: StateVector, *, copy=True
 ) -> sp.sparse.csr_matrix:
+    """given a list of complex numbers, build a normalized state vector stored as a scipy CSR matrix"""
+
     vec = sp.sparse.csr_matrix(vec)
     if copy:
         vec = vec.copy()
-    vec.sort_indices()
+
+    vec /= sp.linalg.norm(vec.data)  # normalize
+    vec.sort_indices()  # order non-zero locations
+
     return vec

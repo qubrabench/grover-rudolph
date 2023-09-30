@@ -1,24 +1,51 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Any
 from functools import reduce
 
 from helping_sp import (
-    reduced_density_matrix,
     ControlledRotationGateMap,
-    number_of_qubits,
     StateVector,
+    number_of_qubits,
     sanitize_sparse_state_vector,
 )
-from state_preparation import phase_angle_dict, build_permutation
+from state_preparation import grover_rudolph, build_permutation
 
 
-__all__ = ["main_circuit"]
+__all__ = ["permutation_GR_circuit"]
 
 
-def circuit_GR(dict_list: list[ControlledRotationGateMap]) -> Any:
+def reduced_density_matrix(rho: np.ndarray, traced_dim: int) -> np.ndarray:
+    """
+    Computes the partial trace on a second subspace of dimension traced_dimension
+
+    If rho is in a composite Hilbert space H_a x H_b
+    and we want to discard the second space H_b,
+    the final state will be the reduced density matrix in H_a,
+    computed by this function by specifying the dimension of H_b, which is traced over
+
+    E.g. |01><01| -> |0><0|
+
+    Args:
+        rho: complex 2D array with as dimensions powers of two
+        traced_dim: dimension of the subspace that is traced over
+
+    Returns:
+        reduced_rho: Complex 2D array
     """
 
+    total_dim = len(rho[0])
+    final_dim = int(total_dim / traced_dim)
+    reduced_rho = np.trace(
+        rho.reshape(final_dim, traced_dim, final_dim, traced_dim),
+        axis1=1,
+        axis2=3,
+    )
+
+    return reduced_rho
+
+
+def GR_circuit(dict_list: list[ControlledRotationGateMap]) -> np.ndarray:
+    """
     The same procedure is applied to the phases, and at the end the two dictionaries are merged together, taking into account the commutation rules.
     Build the circuit of the state preparation with as input the list of dictonaries (good to check if the preparation is succesfull)
 
@@ -43,7 +70,7 @@ def circuit_GR(dict_list: list[ControlledRotationGateMap]) -> Any:
 
     for i, gates in enumerate(dict_list):
         # Build the unitary for each dictonary
-        for k, [theta, phase] in gates.items():
+        for k, (theta, phase) in gates.items():
             if theta is None:
                 R = Id
             else:
@@ -72,7 +99,7 @@ def circuit_GR(dict_list: list[ControlledRotationGateMap]) -> Any:
     return psi
 
 
-def cycle_circuit(cycle: Any, state: Any) -> Any:
+def cycle_circuit(cycle: list[int], state: np.ndarray) -> np.ndarray:
     """
     Given a cycle, it return the unitary that permutes the vector of the computational basis
     circuit building the permutation
@@ -132,17 +159,14 @@ def cycle_circuit(cycle: Any, state: Any) -> Any:
     return state
 
 
-def main_circuit(
-    state: StateVector,
-    N_qubit: int,
-) -> npt.NDArray[np.complexfloating]:
+def permutation_GR_circuit(state: StateVector) -> npt.NDArray[np.complexfloating]:
     """
     Implement the permutation GR:
-    given a sparse state given as input as two vectors, one indicating the value of the non zero components and the other their positions,
-    returns the prepared quantum state vector
+    given a list of coefficients, returns the prepared quantum state vector.
 
     Args:
-        np complex array, np int array, int
+        state: A complex vector proportional to the state to be prepared
+
     Returns:
         Output of the circuit as a density matrix (complex matrix)
     """
@@ -151,16 +175,14 @@ def main_circuit(
     vector = state.data
     nonzero_locations = state.nonzero()[1]
 
+    N_qubit = number_of_qubits(state.shape[1])
+
     e0 = np.array([float(1), float(0)])  # zero state
 
-    if not (np.sort(nonzero_locations) == nonzero_locations).all():
-        raise ValueError("the nonzero_locations location vector must be ordered")
-
     # add zeros to the vector until it has as length a power of 2
-
     d = number_of_qubits(nonzero_locations)  # sparsity
-    angle_phase_dict = phase_angle_dict(vector, list(np.arange(0, len(vector))), d)
-    phi = circuit_GR(angle_phase_dict)
+    gr_gates = grover_rudolph(vector)
+    phi = GR_circuit(gr_gates)
 
     # ancilla qubits
     for i in range(N_qubit - d):
