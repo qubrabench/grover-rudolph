@@ -149,7 +149,7 @@ def grover_rudolph(
 
 def gate_count(total_gate_operations: list[ControlledRotationGateMap]) -> GateCounts:
     """
-    Counts how many gates you need to build  the circuit in terms of elemental ones (single rotation gates, one-control-one-target
+    Counts how many gates you need to build the circuit for Grover Rudolph (optimized or not optimized, but without permutations) in terms of elemental ones (single rotation gates, one-control-one-target
     gates on the |1⟩ state, refered as 2 qubits gates, and Toffoli gates)
 
     Args:
