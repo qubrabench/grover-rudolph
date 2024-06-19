@@ -178,6 +178,8 @@ def hamming_weight(n: int) -> int:
 def number_of_qubits(vec: int | Sized) -> int:
     """number of qubits needed to represent the vector/vector size."""
     sz: int = vec if isinstance(vec, int) else len(vec)
+    if sz == 1:
+        return 1
     return int(np.ceil(np.log2(sz)))
 
 

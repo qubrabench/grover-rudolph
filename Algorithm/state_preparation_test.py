@@ -3,7 +3,7 @@ import numpy as np
 
 from helping_sp import generate_sparse_unit_vector, ZERO
 from state_preparation import grover_rudolph
-from state_preparation_circuit import permutation_GR_circuit
+from state_preparation_circuit import permutation_GR_circuit, GR_circuit
 
 
 @pytest.mark.parametrize("n_qubit", [3, 4, 5])
@@ -18,6 +18,12 @@ def test_circuit(n_qubit: int):
 
         # Build with improved grover rudolph
         rho_GR = permutation_GR_circuit(vector)
+
+        dictionary = grover_rudolph(vector, optimization=False)
+        psi_old = GR_circuit(dictionary)
+        rho_old = np.outer(psi_old, psi_old)
+
+        # assert (abs(rho_old - rho_input) < ZERO).all()
 
         assert (abs(rho_GR - rho_input) < ZERO).all()
 

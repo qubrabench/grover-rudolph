@@ -48,11 +48,12 @@ def grover_rudolph(
     Returns:
         a sequence of controlled gates to be applied.
     """
-    vector = sanitize_sparse_state_vector(vector)
 
+    vector = sanitize_sparse_state_vector(vector)
     nonzero_values = vector.data
     nonzero_locations = vector.nonzero()[1]
-    N_qubit = number_of_qubits(nonzero_values)
+
+    N_qubit = number_of_qubits(int(max(nonzero_locations)) + 1)
 
     final_gates: list[ControlledRotationGateMap] = []
 
