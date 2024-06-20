@@ -1,6 +1,7 @@
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 
 data_folder = Path(__file__).parent.parent / "data"  # ../data
@@ -17,12 +18,16 @@ def make_plot(
     *,
     title: str = "",
     x_axis: str = "",
+    y_axis: str = "",
     ratio_plot: bool = False,
     log_x_axis: bool = False,
     log_y_axis: bool = False,
     font_size: int = 15,
 ):
-    for z in z_values:
+    # Define custom colors for the lines
+    line_colors = ["#045275", "#27AE60", "#DC3977"]  # Replace with your desired colors
+
+    for i, z in enumerate(z_values):
         fulldata = pd.read_csv(
             data_folder / f"Count_{z_label}_{z}.csv", index_col=False
         )
@@ -34,8 +39,9 @@ def make_plot(
         errors = data.sem(numeric_only=True)  # type: ignore
 
         x_label = x_axis
+        y_label = y_axis
 
-        # When plotting ration plot as a function of d/N
+        # When plotting ratio plot as a function of d/N
         x = means.index
         y = means["Toffoli"]
         yerr = errors["Toffoli"]
@@ -54,7 +60,7 @@ def make_plot(
             else:
                 x = z / 2**x
 
-        plt.errorbar(x, y, yerr=yerr, label=f"{z_label} = {z}")
+        plt.errorbar(x, y, yerr=yerr, label=f"{z_label} = {z}", color=line_colors[i])
 
     if log_y_axis:
         plt.yscale("log")
@@ -68,9 +74,18 @@ def make_plot(
             linestyle="dashed",  # type: ignore
         )
 
+    # mpl.rcParams['font.family'] = 'serif'
+    # mpl.rcParams['font.serif'] = 'CMU Serif'
     plt.xlabel(x_label, fontsize=font_size)
+    plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
+    plt.tick_params(axis="both", which="both", length=0)
+    plt.gca().set_facecolor("#EAEAF1")
+    plt.grid(True, color="white")
+    for spine in plt.gca().spines.values():
+        spine.set_visible(False)
     plt.legend(fontsize=font_size)
+
     plt.savefig(plot_folder / f"{data_name}_{z_label}.png")
 
 
@@ -79,7 +94,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "perm",
-        title="#Toffoli with Alg. 5",
+        y_axis="#Toffoli with Alg. 5",
         x_axis="d",
         log_x_axis=True,
         log_y_axis=True,
@@ -90,7 +105,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "optcount",
-        title="# Toffoli with Alg. 6",
+        y_axis="#Toffoli with Alg. 6",
         x_axis="d",
         log_x_axis=True,
         log_y_axis=True,
@@ -101,7 +116,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "oldcount",
-        title="# Toffoli with Alg. 1",
+        y_axis="#Toffoli with Alg. 1",
         x_axis="d",
         log_x_axis=True,
         log_y_axis=True,
@@ -112,7 +127,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "opt_old",
-        title="#Toffoli with Alg. 6 / Alg. 1",
+        y_axis="#Toffoli with Alg. 6 / Alg. 1",
         x_axis="d",
         ratio_plot=True,
         log_x_axis=True,
@@ -123,7 +138,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "perm_opt",
-        title="#Toffoli with Alg. 5 / Alg. 6",
+        y_axis="#Toffoli with Alg. 5 / Alg. 6",
         x_axis="d",
         ratio_plot=True,
         log_x_axis=True,
@@ -138,7 +153,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "perm",
-        title="#Toffoli with Alg. 5",
+        y_axis="#Toffoli with Alg. 5",
         x_axis="n",
     )
     plt.figure()
@@ -147,7 +162,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "optcount",
-        title="#Toffoli with Alg. 6",
+        y_axis="#Toffoli with Alg. 6",
         x_axis="n",
     )
     plt.figure()
@@ -156,7 +171,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "oldcount",
-        title="#Toffoli with Alg. 1",
+        y_axis="#Toffoli with Alg. 1",
         x_axis="n",
     )
     plt.figure()
@@ -165,7 +180,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "opt_old",
-        title="#Toffoli with Alg. 6 / Alg. 1",
+        y_axis="#Toffoli with Alg. 6 / Alg. 1",
         x_axis="n",
         ratio_plot=True,
         log_x_axis=True,
@@ -176,7 +191,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "perm_opt",
-        title="#Toffoli with Alg. 5 / Alg. 6",
+        y_axis="#Toffoli with Alg. 5 / Alg. 6",
         x_axis="n",
         ratio_plot=True,
         log_x_axis=True,
