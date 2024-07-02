@@ -15,6 +15,7 @@ def make_plot(
     z_label: str,
     z_values: list,
     data_name: str,
+    vector_type: str,
     *,
     title: str = "",
     x_axis: str = "",
@@ -29,7 +30,7 @@ def make_plot(
 
     for i, z in enumerate(z_values):
         fulldata = pd.read_csv(
-            data_folder / f"Count_{z_label}_{z}.csv", index_col=False
+            data_folder / f"Count_{vector_type}_{z_label}_{z}.csv", index_col=False
         )
         data = {group[0]: data for group, data in fulldata.groupby(["name"])}
         data = data[data_name]
@@ -61,6 +62,20 @@ def make_plot(
                 x = z / 2**x
 
         plt.errorbar(x, y, yerr=yerr, label=f"{z_label} = {z}", color=line_colors[i])
+        if (data_name == "perm") or (data_name == "oldcount") and (z_label == "n"):
+            slope, intercept = np.polyfit(np.log(x), np.log(y), 1)
+            annotation_text = f"Slope: {slope:.2f}"
+            plt.annotate(
+                annotation_text,
+                xy=(0.95, 0.05 + i * 0.09),
+                xycoords="axes fraction",
+                fontsize=12,
+                ha="right",
+                color=line_colors[i],
+                bbox=dict(
+                    boxstyle="round,pad=0.3", edgecolor="black", facecolor="white"
+                ),
+            )
 
     if log_y_axis:
         plt.yscale("log")
@@ -74,8 +89,6 @@ def make_plot(
             linestyle="dashed",  # type: ignore
         )
 
-    # mpl.rcParams['font.family'] = 'serif'
-    # mpl.rcParams['font.serif'] = 'CMU Serif'
     plt.xlabel(x_label, fontsize=font_size)
     plt.ylabel(y_label, fontsize=font_size)
     plt.title(title, fontsize=font_size)
@@ -86,14 +99,17 @@ def make_plot(
         spine.set_visible(False)
     plt.legend(fontsize=font_size)
 
-    plt.savefig(plot_folder / f"{data_name}_{z_label}.png")
+    plt.savefig(plot_folder / f"{data_name}_{vector_type}_{z_label}.pdf")
 
 
-def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True):
+def generate_plots_as_a_function_of_d(
+    n_values: list, *, vector_type="complex", show_plots: bool = True
+):
     make_plot(
         "n",
         n_values,
         "perm",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 5",
         x_axis="d",
         log_x_axis=True,
@@ -105,6 +121,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "optcount",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 6",
         x_axis="d",
         log_x_axis=True,
@@ -116,6 +133,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "oldcount",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 1",
         x_axis="d",
         log_x_axis=True,
@@ -127,6 +145,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "opt_old",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 6 / Alg. 1",
         x_axis="d",
         ratio_plot=True,
@@ -138,6 +157,7 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         "n",
         n_values,
         "perm_opt",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 5 / Alg. 6",
         x_axis="d",
         ratio_plot=True,
@@ -148,11 +168,14 @@ def generate_plots_as_a_function_of_d(n_values: list, *, show_plots: bool = True
         plt.show()
 
 
-def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True):
+def generate_plots_as_a_function_of_n(
+    d_values: list, *, vector_type: str = "complex", show_plots: bool = True
+):
     make_plot(
         "d",
         d_values,
         "perm",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 5",
         x_axis="n",
     )
@@ -162,6 +185,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "optcount",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 6",
         x_axis="n",
     )
@@ -171,6 +195,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "oldcount",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 1",
         x_axis="n",
     )
@@ -180,6 +205,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "opt_old",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 6 / Alg. 1",
         x_axis="n",
         ratio_plot=True,
@@ -191,6 +217,7 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
         "d",
         d_values,
         "perm_opt",
+        vector_type=vector_type,
         y_axis="#Toffoli with Alg. 5 / Alg. 6",
         x_axis="n",
         ratio_plot=True,
@@ -202,5 +229,6 @@ def generate_plots_as_a_function_of_n(d_values: list, *, show_plots: bool = True
 
 
 if __name__ == "__main__":
-    generate_plots_as_a_function_of_d([12, 16, 20])
-    generate_plots_as_a_function_of_n([10, 100, 200])
+    vector_type = "uniform"
+    generate_plots_as_a_function_of_d([12, 16, 20], vector_type=vector_type)
+    generate_plots_as_a_function_of_n([10, 100, 200], vector_type=vector_type)

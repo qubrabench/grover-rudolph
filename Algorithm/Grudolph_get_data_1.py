@@ -25,7 +25,11 @@ class Stats:
 
 
 def generate_data_as_function_of_d(
-    n_qubit: int, repeat: int = 1, percentage: float = 100, step: int = 1
+    n_qubit: int,
+    repeat: int = 1,
+    percentage: float = 100,
+    step: int = 1,
+    vector_type: str = "complex",
 ):
     """
     Create a txt file with the data: sparsity, gate count
@@ -37,6 +41,9 @@ def generate_data_as_function_of_d(
         repeat: how many data for each point (if more then one, the mean is between them is saved)
         percentage: sample only sparse states, with as many non_zero locations as a percentage 2**n_qubit
         step: sample every 'step' values of sparsity
+        vector_type: refers to the type of the state to be prepared.
+                     'complex' generates complex random vectors, 'real' random real vector and 'uniform' random uniform vector.
+
     """
 
     print(f"Generating data for n = {n_qubit}")
@@ -49,7 +56,7 @@ def generate_data_as_function_of_d(
         stats = Stats()
         for _ in range(repeat):
             # Permutation GR
-            vector = generate_sparse_unit_vector(n_qubit, d)
+            vector = generate_sparse_unit_vector(n_qubit, d, vector_type=vector_type)
 
             perm = permutation_grover_rudolph(vector)
             stats.add_row("perm", perm)
@@ -87,12 +94,12 @@ def generate_data_as_function_of_d(
         print(f"{ix + 1} / {len(d_range)} " + "-" * 40)
 
     pd.concat(data).to_csv(
-        data_folder / f"Count_n_{n_qubit}.csv", mode="w", index=False
+        data_folder / f"Count_{vector_type}_n_{n_qubit}.csv", mode="w", index=False
     )
 
 
 def generate_data_as_function_of_n(
-    d: int, n_qubit_max=30, repeat: int = 1, step: int = 1
+    d: int, n_qubit_max=30, repeat: int = 1, step: int = 1, vector_type: str = "complex"
 ):
     """
     Create a txt file with the data: sparsity, gate count
@@ -105,6 +112,8 @@ def generate_data_as_function_of_n(
         repeat: how many data for each point (if more then one, the mean is between them is saved)
         percentage: sample only sparse states, with as many non_zero locations as a percentage 2**n_qubit
         step: sample every 'step' values of sparsity
+        vector_type: refers to the type of the state to be prepared.
+                     'complex' generates complex random vectors, 'real' random real vector and 'uniform' random uniform vector.
     """
 
     print(f"Generating data for d = {d}")
@@ -115,9 +124,10 @@ def generate_data_as_function_of_n(
     for ix, n in enumerate(n_range):
         stats = Stats()
         for _ in range(repeat):
-            # Permutation GR
-            vector = generate_sparse_unit_vector(n, d)
+            # State generation
+            vector = generate_sparse_unit_vector(n, d, vector_type=vector_type)
 
+            # Permutation GR
             perm = permutation_grover_rudolph(vector)
             stats.add_row("perm", perm)
 
@@ -153,14 +163,24 @@ def generate_data_as_function_of_n(
         # check status
         print(f"{ix + 1} / {len(n_range)} " + "-" * 40)
 
-    pd.concat(data).to_csv(data_folder / f"Count_d_{d}.csv", mode="w", index=False)
+    pd.concat(data).to_csv(
+        data_folder / f"Count_{vector_type}_d_{d}.csv", mode="w", index=False
+    )
 
 
 if __name__ == "__main__":
+    vector_type = "uniform"
     [
         generate_data_as_function_of_d(
-            n, percentage=10**3 * 100 / 2**n, step=50, repeat=100
+            n,
+            percentage=10**3 * 100 / 2**n,
+            step=50,
+            repeat=100,
+            vector_type=vector_type,
         )
         for n in [12, 16, 20]
     ]
-    [generate_data_as_function_of_n(d, step=1, repeat=100) for d in [10, 100, 200]]
+    [
+        generate_data_as_function_of_n(d, step=1, repeat=100, vector_type=vector_type)
+        for d in [10, 100, 200]
+    ]

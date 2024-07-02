@@ -137,7 +137,7 @@ def x_gate_merging(gate_operations: ControlledRotationGateMap) -> int:
 
 
 def generate_sparse_unit_vector(
-    n_qubit: int, d: int, *, dtype: str = "complex"
+    n_qubit: int, d: int, *, vector_type: str = "complex"
 ) -> sp.sparse.spmatrix:
     """
     Generate random complex amplitudes vector of N qubits (length 2^N) with sparsity d
@@ -147,7 +147,8 @@ def generate_sparse_unit_vector(
     Args:
         n_qubit: number of qubits
         d: number of non-zero entries required in the output state vector
-        dtype: datatype of the generated entries. defaults to "complex"
+        vector_type: refers to the type of the state to be prepared.
+                     'complex' generates complex random vectors, 'real' random real vector and 'uniform' random uniform vector.
 
     Returns:
         A state vector stored as a scipy.sparse.spmatrix object with shape (1, 2**n_qubit), having exactly d non-zero elements.
@@ -159,7 +160,18 @@ def generate_sparse_unit_vector(
             "Sparsity must be less or equal than the dimension of the vector"
         )
 
-    sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype=dtype)
+    if vector_type == "complex":
+        sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype="complex")
+    elif vector_type == "real":
+        sparse_v = sparse_v = sp.sparse.random(
+            1, N, density=d / N, format="csr", dtype="float"
+        )
+    elif vector_type == "uniform":
+        sparse_v = sp.sparse.random(1, N, density=d / N, format="csr", dtype="float")
+        sparse_v.data[:] = 1.0
+    else:
+        raise ValueError("Invalid input for the variable state_vector")
+
     sparse_v /= sp.linalg.norm(sparse_v.data)
 
     return sparse_v
