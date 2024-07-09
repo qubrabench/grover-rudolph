@@ -161,5 +161,4 @@ cython_debug/
 
 # Project
 *.log
-/data
 /plots
