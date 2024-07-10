@@ -2,6 +2,7 @@
 **state_preparation** is a collection of functions to estimate the number of gates needed in the state preparation (in terms of Toffoli, 2-qbits gates and 1-qbit gates) and to build the circuit that prepares the state.
 The algorithm used is Grover Rudolph.
 """
+
 import numpy as np
 
 from helping_sp import (
