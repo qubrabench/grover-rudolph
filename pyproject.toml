@@ -1,8 +1,34 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grover-rudolph"
+version = "0.1.0"
+description = "Grover-Rudolph algorithm for quantum state preparation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "qubrabench" }
+]
+dependencies = [
+  "numpy",
+  "scipy",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
 [tool.pytest.ini_options]
 markers = []
 
 [tool.ruff]
-line-length = 100000 # 88 enforced by black, ignore for comments.
+line-length = 100000
 
 [tool.mypy]
 plugins = ["numpy.typing.mypy_plugin"]
