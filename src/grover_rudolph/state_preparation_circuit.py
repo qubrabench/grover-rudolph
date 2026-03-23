@@ -2,13 +2,13 @@ import numpy as np
 import numpy.typing as npt
 from functools import reduce
 
-from helping_sp import (
+from .helping_sp import (
     ControlledRotationGateMap,
     StateVector,
     number_of_qubits,
     sanitize_sparse_state_vector,
 )
-from state_preparation import grover_rudolph, build_permutation
+from .state_preparation import grover_rudolph, build_permutation
 
 
 __all__ = ["permutation_GR_circuit"]

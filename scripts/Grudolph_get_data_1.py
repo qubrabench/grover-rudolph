@@ -2,8 +2,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from helping_sp import generate_sparse_unit_vector, ZERO, optimize_dict
-from state_preparation import (
+from grover_rudolph.helping_sp import generate_sparse_unit_vector, ZERO, optimize_dict
+from grover_rudolph.state_preparation import (
     grover_rudolph,
     gate_count,
     permutation_grover_rudolph,

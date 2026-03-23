@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
 
-from helping_sp import generate_sparse_unit_vector, ZERO
-from state_preparation import grover_rudolph
-from state_preparation_circuit import permutation_GR_circuit, GR_circuit
+from grover_rudolph.helping_sp import generate_sparse_unit_vector, ZERO
+from grover_rudolph.state_preparation import grover_rudolph
+from grover_rudolph.state_preparation_circuit import permutation_GR_circuit, GR_circuit
 
 
 @pytest.mark.parametrize("n_qubit", [3, 4, 5])

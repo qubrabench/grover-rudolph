@@ -5,7 +5,7 @@ The algorithm used is Grover Rudolph.
 
 import numpy as np
 
-from helping_sp import (
+from .helping_sp import (
     ZERO,
     hamming_weight,
     x_gate_merging,
