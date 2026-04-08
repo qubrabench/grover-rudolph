@@ -17,12 +17,19 @@ In the `scripts/` folder, there are two files: one to generate data, and the oth
 Finally, the `tests/` folder contains a pytest check:
 - **state_preparation_test**: test that the algorithm works correctly 
 
+## Installing
+
+Download the repository and run
+```sh
+pip install .
+```
+
 ## Testing
 
 If you want to edit the project or run tests, first install all dependencies using:
 
 ```sh
-python -m pip install -r requirements.txt & python -m pip install -e .
+pip install -e .[dev]
 ```
 
 Then run `pytest` to run all tests. You can alternatively run `make` to run all tests run by the CI.
