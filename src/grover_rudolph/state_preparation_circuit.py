@@ -10,7 +10,6 @@ from .helping_sp import (
 )
 from .state_preparation import grover_rudolph, build_permutation
 
-
 __all__ = ["permutation_GR_circuit"]
 
 
